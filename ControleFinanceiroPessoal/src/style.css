@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+body {
+    @apply bg-[#030712] text-[#e0e6ee];
+}
+
+.menuNavButtons{
+    @apply bg-[#615fff] text-lg font-bold text-[#e0e6ee] border-2 border-[#e0e6ee] rounded-md px-4 py-2 hover:bg-[#4a4fff] transition-colors duration-300;   ;
+}

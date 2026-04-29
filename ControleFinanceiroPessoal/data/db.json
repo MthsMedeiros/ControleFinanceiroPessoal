@@ -1,0 +1,24 @@
+{
+  "receitas": [
+    {
+      "descricao": "Salário",
+      "valor": "5396.89",
+      "data": "28/04/2026",
+      "id": 6
+    }
+  ],
+  "despesas": [
+    {
+      "id": 1,
+      "descricao": "Aluguel",
+      "valor": "1100",
+      "data": "05/06/2024"
+    },
+    {
+      "descricao": "cartão",
+      "valor": "3000",
+      "data": "28/04/2026",
+      "id": 2
+    }
+  ]
+}
