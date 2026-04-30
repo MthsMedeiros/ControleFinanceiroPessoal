@@ -6,6 +6,7 @@ import heroImg from './assets/hero.png'
 import Dashboard from './componets/Dashboard'
 import Receitas from './componets/Receitas'
 import Despesas from './componets/Despesas'
+import Cartoes from './componets/Cartoes'
 import { UseFetch } from './hooks/UseFetch'
 
 
@@ -13,11 +14,20 @@ function App() {
 
   const [url, setUrl] = useState('http://localhost:3001')
   const [count, setCount] = useState(0)
+  const [dashboardRenderCount, setDashboardRenderCount] = useState(0)
   let [isOpen, setIsOpen] = useState(false)
   let [page, setPage] = useState('Dashboard')
 
   const { listReceitas, httpConfig: receitasConfig } = UseFetch(url + '/receitas')
   const { listDespesas, httpConfig: despesasConfig } = UseFetch(url + '/despesas')
+  const { listCartoes, httpConfig: cartoesConfig } = UseFetch(url + '/cartoes')
+
+  const handleSetPage = (newPage) => {
+    setPage(newPage)
+    if (newPage === 'Dashboard') {
+      setDashboardRenderCount(prev => prev + 1) // Força remontagem do Dashboard
+    }
+  }
 
   
 
@@ -41,10 +51,10 @@ function App() {
 
             {/* Navegação central */}
             <ul className='flex items-center gap-1'>
-              {['Dashboard', 'Receitas', 'Despesas'].map((p) => (
+              {['Dashboard', 'Receitas', 'Despesas', 'Cartões'].map((p) => (
                 <li key={p}>
                   <button
-                    onClick={() => setPage(p)}
+                    onClick={() => handleSetPage(p)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                       page === p
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
@@ -93,9 +103,10 @@ function App() {
           </div>
         </nav>
         <div className='w-full h-full flex-1'>
-            {page === "Dashboard" && <Dashboard listDespesas={listDespesas} listReceitas={listReceitas} />}
+            {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} />}
             {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} />}
             {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} />}
+            {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} />}
 
         </div>
       </div>

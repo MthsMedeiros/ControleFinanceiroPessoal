@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 
 const Despesas = ( { listDespesas,httpConfig }) => {
 
+  //Filtro de Mes
+  const [mesAnoAtual, setMesAnoAtual] = useState(new Date())
+  const [meses] = useState(["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"])
 
   const [id, setId] = useState("")
   const [descricao, setDescricao] = useState("")
@@ -69,9 +72,15 @@ const Despesas = ( { listDespesas,httpConfig }) => {
     httpConfig(dataForDelete, 'DELETE')
   }
 
-
-
-  const total = listDespesas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
+  function calculaTotalMes() {
+    let total = 0;
+    listDespesas.forEach(element => {
+      if (parseInt(element.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(element.data.split('/')[2]) === mesAnoAtual.getFullYear()) {
+        total += parseFloat(element.valor)
+      }
+    });
+    return total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
 
   return (
     <div className='mt-10 flex flex-col gap-8 px-6 max-w-5xl mx-auto w-full'>
@@ -113,6 +122,7 @@ const Despesas = ( { listDespesas,httpConfig }) => {
               ref={inputDate} value={date}
               onChange={(e) => setDate(e.target.value)}
               className='bg-white/10 border border-white/20 focus:border-red-400 focus:outline-none rounded-xl px-4 py-2.5 text-white/80 transition-colors duration-200'
+              required
               type="date"
             />
           </label>
@@ -132,6 +142,37 @@ const Despesas = ( { listDespesas,httpConfig }) => {
             </button>
           )}
         </form>
+
+        <hr className='mt-8 border-white/40' />
+
+        {/*Div Filtro Mes*/}
+        <div className='mt-8 flex items-center justify-center gap-4'>
+          {/*Div Seta esquerda*/}
+          <div>
+            <button onClick={() => setMesAnoAtual(new Date(mesAnoAtual.getFullYear(), mesAnoAtual.getMonth() - 1, 1))} className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-400 text-white/60 hover:text-white transition-all duration-200'>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+              </svg>
+            </button>
+          </div>
+
+          {/*Div de mês e ano*/}
+          <div className='text-white/50 text-sm flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-red-400 rounded-xl px-5 py-3 cursor-pointer transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,50,50,0.4)] min-w-44 justify-center'>
+            <svg className='w-5 h-5 text-red-400 group-hover:scale-110 transition-transform duration-200' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+            </svg>
+            <span className='text-sm text-white/50'>{meses[mesAnoAtual.getMonth()]} {mesAnoAtual.getFullYear()}</span>
+          </div>
+
+          {/*Div Seta direita*/}
+          <div>
+            <button onClick={() => setMesAnoAtual(new Date(mesAnoAtual.getFullYear(), mesAnoAtual.getMonth() + 1, 1))} className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-400 text-white/60 hover:text-white transition-all duration-200'>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Tabela */}
@@ -152,6 +193,7 @@ const Despesas = ( { listDespesas,httpConfig }) => {
               </tr>
             )}
             {listDespesas.map((despesa, index) => (
+              parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
               <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
                 <td className='px-6 py-4 text-white/50'>{despesa.data}</td>
                 <td className='px-6 py-4 text-white font-medium'>{despesa.descricao}</td>
@@ -177,13 +219,14 @@ const Despesas = ( { listDespesas,httpConfig }) => {
                   </div>
                 </td>
               </tr>
+              ) : null
             ))}
           </tbody>
           <tfoot>
             <tr className='border-t border-white/10 bg-white/5'>
               <td colSpan={2} className='px-6 py-4 text-white/40 text-xs uppercase tracking-wider'>Total</td>
               <td className='px-6 py-4 text-right text-red-400 font-bold text-base'>
-                R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {calculaTotalMes()}
               </td>
               <td></td>
             </tr>

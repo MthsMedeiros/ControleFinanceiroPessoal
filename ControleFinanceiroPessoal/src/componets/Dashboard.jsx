@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 const nomeMesesCompletos = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 import { Pie } from 'react-chartjs-2'
@@ -14,7 +14,9 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const hoje = new Date()
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
   const [mesSelecionado, setMesSelecionado] = useState(mesAtual)
+  const [mountId] = useState(() => Date.now()) // único por montagem do Dashboard
   const refMes = useRef(null)
+
 
   const filtrarPorMes = (lista) => {
     const [ano, mes] = mesSelecionado.split('-').map(Number)
@@ -30,31 +32,41 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const totalReceitas = receitasFiltradas.reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
   const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
 
-  const gerarCores = (quantidade) => {
-    return Array.from({ length: quantidade }, (_, i) => {
-      const hue = Math.round((i * 360) / quantidade)
-      // Converte HSL para HEX
-      const h = hue / 360
-      const s = 0.7
-      const l = 0.55
+  function hslToHex(h, s, l) {
+    s /= 100;
+    l /= 100;
 
-      const hue2rgb = (p, q, t) => {
-        if (t < 0) t += 1
-        if (t > 1) t -= 1
-        if (t < 1 / 6) return p + (q - p) * 6 * t
-        if (t < 1 / 2) return q
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-        return p
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n =>
+      Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
+
+    return `#${[f(0), f(8), f(4)]
+      .map(x => x.toString(16).padStart(2, '0'))
+      .join('')}`;
+  }
+
+  function gerarCores(quantidade, tom) {
+    const cores = [];
+
+    for (let i = 0; i < quantidade; i++) {
+      let hue;
+
+      if (tom === 'vermelho') {
+        hue = Math.random() * 20; // faixa do vermelho
+      } else if (tom === 'azul') {
+        hue = 220 + Math.random() * 40; // faixa do azul
+      } else {
+        throw new Error('Tom deve ser "vermelho" ou "azul"');
       }
 
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      const p = 2 * l - q
-      const r = Math.round(hue2rgb(p, q, h + 1 / 3) * 255)
-      const g = Math.round(hue2rgb(p, q, h) * 255)
-      const b = Math.round(hue2rgb(p, q, h - 1 / 3) * 255)
+      const saturation = 70 + Math.random() * 30;
+      const lightness = 45 + Math.random() * 15;
 
-      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
-    })
+      cores.push(hslToHex(hue, saturation, lightness));
+    }
+
+    return cores;
   }
   // Agrupar por mês
   const agruparPorMes = (lista) => {
@@ -93,8 +105,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     datasets: [
       {
         data: receitasFiltradas.map(receita => parseFloat(receita.valor)),
-        backgroundColor: gerarCores(receitasFiltradas.length),
-        borderColor: gerarCores(receitasFiltradas.length),
+        backgroundColor: gerarCores(receitasFiltradas.length, 'azul'),
+        borderColor: gerarCores(receitasFiltradas.length, 'azul'),
         borderWidth: 1
       }
     ]
@@ -105,8 +117,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     datasets: [
       {
         data: despesasFiltradas.map(despesa => parseFloat(despesa.valor)),
-        backgroundColor: gerarCores(despesasFiltradas.length),
-        borderColor: gerarCores(despesasFiltradas.length),
+        backgroundColor: gerarCores(despesasFiltradas.length, 'vermelho'),
+        borderColor: gerarCores(despesasFiltradas.length, 'vermelho'),
         borderWidth: 1
       }
     ]
@@ -146,7 +158,11 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           }}
           className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/20 hover:border-blue-400 text-white/60 hover:text-white transition-all duration-200'
         >
-          ‹
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+          </svg>
+
+
         </button>
 
         {/* Campo mês */}
@@ -177,7 +193,10 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           }}
           className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/20 hover:border-blue-400 text-white/60 hover:text-white transition-all duration-200'
         >
-          ›
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+          </svg>
+
         </button>
 
         {/* Botão voltar ao mês atual */}
@@ -192,19 +211,20 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       </div>
       <div id="receita-x-despesas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
         <h1 className='text-center text-3xl  p-2'>Receita x Despesas</h1>
-        <Pie data={receitasXDespesas} />
+        <Pie key={`pie-${mountId}`} data={receitasXDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
       </div>
       <div id="receitas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
         <h1 className='text-center text-3xl  p-2'>Receitas</h1>
-        <Doughnut data={doughnutReceitas} />
+        <Doughnut key={`doughnut-r-${mountId}`} data={doughnutReceitas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
       </div>
       <div id="despesas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
         <h1 className='text-center text-3xl  p-2'>Despesas</h1>
-        <Doughnut data={doughnutDespesas} />
+        <Doughnut key={`doughnut-d-${mountId}`} data={doughnutDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
       </div>
       <div className=' border-white w-full h-120 flex flex-col items-center justify-center'>
         <h1 className='text-center text-3xl p-2'>Receitas vs Despesas por Mês</h1>
-        <Bar data={barrasComparativo} options={{
+        <Bar key={`bar-${mountId}`} data={barrasComparativo} options={{
+          animation: { duration: 1000 },
           responsive: true,
           maintainAspectRatio: false,
           plugins: { legend: { position: 'top' } }

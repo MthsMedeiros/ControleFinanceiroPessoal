@@ -7,6 +7,8 @@ export const UseFetch = (url) => {
 
     let [listDespesas, setListDespesas] = useState([])
 
+    let [listCartoes, setListCartoes] = useState([])
+
     let [idDelete, setIdDelete] = useState(null)
 
     let [idUpdate, setIdUpdate] = useState(null)
@@ -84,6 +86,22 @@ export const UseFetch = (url) => {
     }, [url, callFetchData]);
 
     useEffect(() => {
+        
+        const fetchData = async () => {
+            try {
+                const response = await fetch(url);
+                const json = await response.json();
+                setListCartoes(json);
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        };
+
+        fetchData();
+    }, [url, callFetchData]);
+
+    useEffect(() => {
+        console.log(`Config ${config} url ${url}`)
         if (!config) return;
         const httpRequest = async () => {
             if(config.method === "POST"){
@@ -119,6 +137,6 @@ export const UseFetch = (url) => {
         httpRequest()
     }, [config]);
 
-    return {listReceitas, listDespesas, httpConfig};
+    return {listReceitas, listDespesas,listCartoes, httpConfig};
 };
 
