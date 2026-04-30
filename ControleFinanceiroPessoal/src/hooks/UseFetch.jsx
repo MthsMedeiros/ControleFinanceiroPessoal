@@ -1,6 +1,4 @@
-import React from 'react'
-
-import {useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
 
 export const UseFetch = (url) => {
     let [listReceitas, setListReceitas] = useState([])
@@ -16,6 +14,8 @@ export const UseFetch = (url) => {
     let [config, setConfig] = useState(null)
 
     let [callFetchData, setCallFetchData] = useState(false)
+
+    let [loading, setLoading] = useState(false)
 
     
 
@@ -59,9 +59,11 @@ export const UseFetch = (url) => {
         
         const fetchData = async () => {
             try {
+                setLoading(true)
                 const response = await fetch(url);
                 const json = await response.json();
                 setListReceitas(json);
+                setLoading(false)
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
@@ -74,9 +76,11 @@ export const UseFetch = (url) => {
         
         const fetchData = async () => {
             try {
+                setLoading(true)
                 const response = await fetch(url);
                 const json = await response.json();
                 setListDespesas(json);
+                setLoading(false)
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
@@ -89,9 +93,11 @@ export const UseFetch = (url) => {
         
         const fetchData = async () => {
             try {
+                setLoading(true)
                 const response = await fetch(url);
                 const json = await response.json();
                 setListCartoes(json);
+                setLoading(false)
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
@@ -101,33 +107,38 @@ export const UseFetch = (url) => {
     }, [url, callFetchData]);
 
     useEffect(() => {
-        console.log(`Config ${config} url ${url}`)
         if (!config) return;
         const httpRequest = async () => {
             if(config.method === "POST"){
                 try{
+                    setLoading(true)
                     const response = await fetch(url, config);            
                     const json = await response.json();
                     setCallFetchData(json);
+                    setLoading(false)
                 }catch(error){
                     console.error('Erro ao enviar dados:', error);
                 }
             }
             if(config.method === "DELETE"){
                 try {
+                    setLoading(true)
                     const response = await fetch(`${url}/${idDelete}`, config);
                     const json = await response.json();
                     setCallFetchData(json);
+                    setLoading(false)
                 } catch(error) {
                     console.error('Erro ao deletar:', error);
                 }
             }
             if(config.method === "PATCH"){
                 try {
+                    setLoading(true)
                     
                     const response = await fetch(`${url}/${idUpdate}`, config);
                     const json = await response.json();
                     setCallFetchData(json);
+                    setLoading(false)
                 } catch(error) {
                     console.error('Erro ao atualizar:', error);
                 }
@@ -135,8 +146,9 @@ export const UseFetch = (url) => {
         }
 
         httpRequest()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [config]);
 
-    return {listReceitas, listDespesas,listCartoes, httpConfig};
+    return {listReceitas, listDespesas,listCartoes, httpConfig, loading};
 };
 

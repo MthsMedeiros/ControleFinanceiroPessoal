@@ -1,7 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 
 import Dashboard from './componets/Dashboard'
 import Receitas from './componets/Receitas'
@@ -12,15 +9,14 @@ import { UseFetch } from './hooks/UseFetch'
 
 function App() {
 
-  const [url, setUrl] = useState('http://localhost:3001')
-  const [count, setCount] = useState(0)
+  const [url] = useState('http://localhost:3001')
   const [dashboardRenderCount, setDashboardRenderCount] = useState(0)
   let [isOpen, setIsOpen] = useState(false)
   let [page, setPage] = useState('Dashboard')
 
-  const { listReceitas, httpConfig: receitasConfig } = UseFetch(url + '/receitas')
-  const { listDespesas, httpConfig: despesasConfig } = UseFetch(url + '/despesas')
-  const { listCartoes, httpConfig: cartoesConfig } = UseFetch(url + '/cartoes')
+  const { listReceitas, httpConfig: receitasConfig, loading: loadingReceitas } = UseFetch(url + '/receitas')
+  const { listDespesas, httpConfig: despesasConfig, loading: loadingDespesas } = UseFetch(url + '/despesas')
+  const { listCartoes, httpConfig: cartoesConfig, loading: loadingCartoes } = UseFetch(url + '/cartoes')
 
   const handleSetPage = (newPage) => {
     setPage(newPage)
@@ -104,9 +100,9 @@ function App() {
         </nav>
         <div className='w-full h-full flex-1'>
             {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} />}
-            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} />}
-            {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} />}
-            {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} />}
+            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} loading={loadingReceitas} />}
+            {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} loading={loadingDespesas} />}
+            {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} loading={loadingCartoes} />}
 
         </div>
       </div>

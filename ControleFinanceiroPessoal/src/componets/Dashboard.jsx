@@ -1,14 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 
 const nomeMesesCompletos = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 import { Pie } from 'react-chartjs-2'
 import { Doughnut } from 'react-chartjs-2'
-
-
 import { Bar } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend, Filler } from 'chart.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler)
 
 const Dashboard = ({ listDespesas, listReceitas }) => {
   const hoje = new Date()
@@ -32,41 +31,18 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const totalReceitas = receitasFiltradas.reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
   const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
 
-  function hslToHex(h, s, l) {
-    s /= 100;
-    l /= 100;
-
-    const k = n => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = n =>
-      Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
-
-    return `#${[f(0), f(8), f(4)]
-      .map(x => x.toString(16).padStart(2, '0'))
-      .join('')}`;
-  }
-
-  function gerarCores(quantidade, tom) {
-    const cores = [];
-
+  function gerarCores(quantidade) {
+    const paleta = [
+      '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
+      '#06b6d4', '#f97316', '#6366f1', '#14b8a6', '#84cc16',
+      '#e11d48', '#0ea5e9', '#a855f7', '#22c55e', '#eab308',
+      '#ef4444', '#d946ef', '#2dd4bf', '#fb923c', '#4ade80',
+    ]
+    const cores = []
     for (let i = 0; i < quantidade; i++) {
-      let hue;
-
-      if (tom === 'vermelho') {
-        hue = Math.random() * 20; // faixa do vermelho
-      } else if (tom === 'azul') {
-        hue = 220 + Math.random() * 40; // faixa do azul
-      } else {
-        throw new Error('Tom deve ser "vermelho" ou "azul"');
-      }
-
-      const saturation = 70 + Math.random() * 30;
-      const lightness = 45 + Math.random() * 15;
-
-      cores.push(hslToHex(hue, saturation, lightness));
+      cores.push(paleta[i % paleta.length])
     }
-
-    return cores;
+    return cores
   }
   // Agrupar por mês
   const agruparPorMes = (lista) => {
@@ -87,6 +63,59 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 
+  const saldoMes = totalReceitas - totalDespesas
+
+  // Saldo acumulado por mês
+  const saldoAcumulado = todosMeses.reduce((acc, mes) => {
+    const ultimo = acc.length > 0 ? acc[acc.length - 1] : 0
+    return [...acc, ultimo + (mesesReceitas[mes] || 0) - (mesesDespesas[mes] || 0)]
+  }, [])
+
+  const linhaSaldoAcumulado = {
+    labels: todosMeses.map(mes => nomeMeses[parseInt(mes) - 1]),
+    datasets: [
+      {
+        label: 'Saldo acumulado',
+        data: saldoAcumulado,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.15)',
+        pointBackgroundColor: saldoAcumulado.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  }
+
+  // Ranking maiores despesas do mês
+  const topDespesas = [...despesasFiltradas]
+    .sort((a, b) => parseFloat(b.valor) - parseFloat(a.valor))
+    .slice(0, 7)
+
+  const barrasTopDespesas = {
+    labels: topDespesas.map(d => d.descricao),
+    datasets: [
+      {
+        label: 'Valor (R$)',
+        data: topDespesas.map(d => parseFloat(d.valor)),
+        backgroundColor: gerarCores(topDespesas.length),
+        borderRadius: 6,
+      }
+    ]
+  }
+
+  const barrasHorizontaisOptions = {
+    indexAxis: 'y',
+    animation: { duration: 1000 },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: 'rgba(255,255,255,0.5)', callback: v => `R$ ${v.toLocaleString('pt-BR')}` }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+    }
+  }
+
   const receitas = receitasFiltradas.map(receita => receita.descricao)
   const receitasXDespesas = {
     labels: ['Receitas', 'Despesas'],
@@ -105,8 +134,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     datasets: [
       {
         data: receitasFiltradas.map(receita => parseFloat(receita.valor)),
-        backgroundColor: gerarCores(receitasFiltradas.length, 'azul'),
-        borderColor: gerarCores(receitasFiltradas.length, 'azul'),
+        backgroundColor: gerarCores(receitasFiltradas.length),
+        borderColor: gerarCores(receitasFiltradas.length),
         borderWidth: 1
       }
     ]
@@ -117,8 +146,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     datasets: [
       {
         data: despesasFiltradas.map(despesa => parseFloat(despesa.valor)),
-        backgroundColor: gerarCores(despesasFiltradas.length, 'vermelho'),
-        borderColor: gerarCores(despesasFiltradas.length, 'vermelho'),
+        backgroundColor: gerarCores(despesasFiltradas.length),
+        borderColor: gerarCores(despesasFiltradas.length),
         borderWidth: 1
       }
     ]
@@ -144,9 +173,81 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     ]
   }
 
+  const linhaReceitas = {
+    labels: todosMeses.map(mes => nomeMeses[parseInt(mes) - 1]),
+    datasets: [
+      {
+        label: 'Receitas',
+        data: todosMeses.map(mes => mesesReceitas[mes] || 0),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.15)',
+        pointBackgroundColor: '#3b82f6',
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  }
+
+  const linhaDespesas = {
+    labels: todosMeses.map(mes => nomeMeses[parseInt(mes) - 1]),
+    datasets: [
+      {
+        label: 'Despesas',
+        data: todosMeses.map(mes => mesesDespesas[mes] || 0),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.15)',
+        pointBackgroundColor: '#ef4444',
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  }
+
+  const lineOptions = {
+    animation: { duration: 1000 },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { color: 'rgba(255,255,255,0.5)' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      x: {
+        ticks: { color: 'rgba(255,255,255,0.5)' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      }
+    }
+  }
+
   return (
-    <div className='mt-10 grid grid-cols-3 grid-rows-[auto,1fr,1fr] gap-20 items-center  justify-between'>
-      <div className='col-span-3 flex flex-row items-center justify-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 transition-all duration-300'>
+    <div className='mt-10 flex flex-col gap-6 px-6 max-w-7xl mx-auto w-full pb-10'>
+
+      {/* Cards de resumo */}
+      <div className='grid grid-cols-3 gap-6'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
+          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Receitas do mês</p>
+          <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-xs text-white/30 mt-1'>{receitasFiltradas.length} lançamento{receitasFiltradas.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
+          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Despesas do mês</p>
+          <p className='text-3xl font-bold text-red-400'>R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.length} lançamento{despesasFiltradas.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${ saldoMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5' }`}>
+          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo do mês</p>
+          <p className={`text-3xl font-bold ${ saldoMes >= 0 ? 'text-emerald-400' : 'text-red-400' }`}>
+            {saldoMes >= 0 ? '+' : ''}R$ {saldoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+          <p className='text-xs text-white/30 mt-1'>{saldoMes >= 0 ? 'Superávit' : 'Déficit'} no período</p>
+        </div>
+      </div>
+
+      <div className='flex flex-row items-center justify-center gap-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 transition-all duration-300'>
         <span className='text-lg font-semibold text-white/70 tracking-wide'>Mês:</span>
 
         {/* Setas de navegação */}
@@ -158,8 +259,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           }}
           className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/20 hover:border-blue-400 text-white/60 hover:text-white transition-all duration-200'
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
           </svg>
 
 
@@ -193,8 +294,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           }}
           className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/20 hover:border-blue-400 text-white/60 hover:text-white transition-all duration-200'
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
           </svg>
 
         </button>
@@ -209,26 +310,76 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           </button>
         )}
       </div>
-      <div id="receita-x-despesas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
-        <h1 className='text-center text-3xl  p-2'>Receita x Despesas</h1>
-        <Pie key={`pie-${mountId}`} data={receitasXDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+      {/* Linha 1: Pie + Doughnut Receitas + Doughnut Despesas */}
+      <div className='grid grid-cols-3 gap-6'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Receita x Despesas</h2>
+          <div className='flex-1 w-full'>
+            <Pie key={`pie-${mountId}`} data={receitasXDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+          </div>
+        </div>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Receitas</h2>
+          <div className='flex-1 w-full'>
+            <Doughnut key={`doughnut-r-${mountId}`} data={doughnutReceitas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+          </div>
+        </div>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Despesas</h2>
+          <div className='flex-1 w-full'>
+            <Doughnut key={`doughnut-d-${mountId}`} data={doughnutDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+          </div>
+        </div>
       </div>
-      <div id="receitas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
-        <h1 className='text-center text-3xl  p-2'>Receitas</h1>
-        <Doughnut key={`doughnut-r-${mountId}`} data={doughnutReceitas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+
+      {/* Linha 2: Barras comparativo (col-span-2) + Linha Receitas */}
+      <div className='grid grid-cols-3 gap-6'>
+        <div className='col-span-2 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Receitas vs Despesas por Mês</h2>
+          <div className='flex-1 w-full'>
+            <Bar key={`bar-${mountId}`} data={barrasComparativo} options={{
+              animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'top', labels: { color: 'rgba(255,255,255,0.6)' } } },
+              scales: {
+                y: { ticks: { color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { ticks: { color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+              }
+            }} />
+          </div>
+        </div>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Crescimento de Receitas</h2>
+          <div className='flex-1 w-full'>
+            <Line key={`line-r-${mountId}`} data={linhaReceitas} options={lineOptions} />
+          </div>
+        </div>
       </div>
-      <div id="despesas" className=' border-white w-full h-120 flex flex-col items-center justify-center'>
-        <h1 className='text-center text-3xl  p-2'>Despesas</h1>
-        <Doughnut key={`doughnut-d-${mountId}`} data={doughnutDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+
+      {/* Linha 3: Saldo acumulado + Ranking despesas */}
+      <div className='grid grid-cols-2 gap-6'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Saldo Acumulado por Mês</h2>
+          <div className='flex-1 w-full'>
+            <Line key={`line-saldo-${mountId}`} data={linhaSaldoAcumulado} options={lineOptions} />
+          </div>
+        </div>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+          <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Maiores Despesas do Mês</h2>
+          <div className='flex-1 w-full'>
+            {topDespesas.length === 0
+              ? <p className='text-white/30 text-sm text-center mt-10'>Nenhuma despesa no período</p>
+              : <Bar key={`bar-top-${mountId}`} data={barrasTopDespesas} options={barrasHorizontaisOptions} />
+            }
+          </div>
+        </div>
       </div>
-      <div className=' border-white w-full h-120 flex flex-col items-center justify-center'>
-        <h1 className='text-center text-3xl p-2'>Receitas vs Despesas por Mês</h1>
-        <Bar key={`bar-${mountId}`} data={barrasComparativo} options={{
-          animation: { duration: 1000 },
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } }
-        }} />
+
+      {/* Linha 4: Linha Despesas (largura total) */}
+      <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+        <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Crescimento de Despesas</h2>
+        <div className='flex-1 w-full'>
+          <Line key={`line-d-${mountId}`} data={linhaDespesas} options={lineOptions} />
+        </div>
       </div>
 
     </div>
