@@ -20,17 +20,27 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const filtrarPorMes = (lista) => {
     const [ano, mes] = mesSelecionado.split('-').map(Number)
     return lista.filter(item => {
-      if (!item.data || item.data === '--Sem data definida--') return false
+      if (!item.data || !item.data.includes('/')) return false
       const [, m, y] = item.data.split('/')
       return parseInt(m) === mes && parseInt(y) === ano
     })
   }
 
+  // ===== CÁLCULOS DO MÊS SELECIONADO =====
+  // Filtra receitas e despesas apenas do mês selecionado
   const receitasFiltradas = filtrarPorMes(listReceitas)
   const despesasFiltradas = filtrarPorMes(listDespesas)
+  
+  // Soma todos os valores de receita do mês selecionado
+  // reduce() começa com acc=0 e vai somando cada valor
   const totalReceitas = receitasFiltradas.reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
+  
+  // Soma todos os valores de despesa do mês selecionado
   const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
 
+  // ===== GERADOR DE CORES PARA GRÁFICOS =====
+  // Função que distribui cores da paleta de forma cíclica
+  // Se houver mais itens que cores, ela volta do início (por isso o %)
   function gerarCores(quantidade) {
     const paleta = [
       '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
@@ -40,34 +50,75 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     ]
     const cores = []
     for (let i = 0; i < quantidade; i++) {
-      cores.push(paleta[i % paleta.length])
+      cores.push(paleta[i % paleta.length]) // % garante que volta do início se precisar
     }
     return cores
   }
-  // Agrupar por mês
+  // ===== AGRUPAMENTO DE DADOS POR MÊS =====
+  // Agrupa receitas/despesas por mês para visualização geral
+  // Cria um objeto onde a chave é o mês (MM) e o valor é a soma do mês
   const agruparPorMes = (lista) => {
-    const meses = {}
+    const meses = {} // Ex: { "01": 1000, "02": 800, ... }
     lista.forEach(item => {
-      const mes = item.data.split('/')[1] // extrai MM de DD/MM/YYYY
-      if (!meses[mes]) meses[mes] = 0
-      meses[mes] += parseFloat(item.valor)
+      if (!item.data || !item.data.includes('/')) return // ignora datas inválidas
+      const mes = item.data.split('/')[1] // Extrai MM de DD/MM/YYYY
+      if (!meses[mes]) meses[mes] = 0 // Se mês não existe, cria com valor 0
+      meses[mes] += parseFloat(item.valor) // Soma o valor ao mês
     })
     return meses
   }
 
+  // Agrupa receitas e despesas por mês para toda a história de dados
   const mesesReceitas = agruparPorMes(listReceitas)
   const mesesDespesas = agruparPorMes(listDespesas)
 
-  // Pegar todos os meses únicos e ordenar
+  // Pega todos os meses únicos entre receitas e despesas, remove duplicatas com Set, e ordena
+  // Exemplo: ["01", "02", "03", "04", ...] em ordem crescente
   const todosMeses = [...new Set([...Object.keys(mesesReceitas), ...Object.keys(mesesDespesas)])].sort()
   const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 
-  const saldoMes = totalReceitas - totalDespesas
+  // ===== SALDO ACUMULADO ATÉ O MÊS SELECIONADO =====
+  // Extrai o ano e mês selecionado do formato "YYYY-MM"
+  // map(Number) converte strings em números: "2026" → 2026
+  const [anoSel, mesSel] = mesSelecionado.split('-').map(Number)
+  
+  // Soma TODAS as receitas de meses ANTERIORES + o mês selecionado
+  // filter() seleciona apenas receitas que atendem a condição:
+  //   - yyyy < anoSel: todos os anos anteriores
+  //   - OU: yyyy === anoSel && mm <= mesSel: mesmo ano E mês até o selecionado
+  // Exemplo: Se selecionou abril/2026, pega JAN, FEV, MAR, ABRIL de 2026 (e qualquer coisa de 2025)
+  const totalReceitasAcumulado = listReceitas
+    .filter(r => {
+      const partes = r.data.split('/') // "01/04/2026" → ["01", "04", "2026"]
+      const mm = parseInt(partes[1]) // Extrai mês (índice 1)
+      const yyyy = parseInt(partes[2]) // Extrai ano (índice 2)
+      return yyyy < anoSel || (yyyy === anoSel && mm <= mesSel) // Condição de filtro
+    })
+    // reduce() soma todos os valores filtrados em uma única variável
+    // acc: acumulador (começa em 0)
+    // r: item atual sendo processado
+    .reduce((acc, r) => acc + parseFloat(r.valor), 0)
+  
+  // Mesma lógica que acima, mas para despesas
+  const totalDespesasAcumulado = listDespesas
+    .filter(d => {
+      const partes = d.data.split('/')
+      const mm = parseInt(partes[1])
+      const yyyy = parseInt(partes[2])
+      return yyyy < anoSel || (yyyy === anoSel && mm <= mesSel)
+    })
+    .reduce((acc, d) => acc + parseFloat(d.valor), 0)
+  
+  // Calcula o saldo acumulado subtraindo despesas de receitas
+  const saldoAcumuladoAteMes = totalReceitasAcumulado - totalDespesasAcumulado
 
-  // Saldo acumulado por mês
+  // ===== SALDO ACUMULADO MENSAL PARA GRÁFICO =====
+  // Calcula o saldo acumulado MÊS A MÊS para visualizar a evolução
+  // Cada ponto do gráfico mostra o saldo total até aquele mês
   const saldoAcumulado = todosMeses.reduce((acc, mes) => {
-    const ultimo = acc.length > 0 ? acc[acc.length - 1] : 0
+    const ultimo = acc.length > 0 ? acc[acc.length - 1] : 0 // Pega o último valor acumulado
+    // Adiciona o saldo do mês atual ao saldo anterior
     return [...acc, ultimo + (mesesReceitas[mes] || 0) - (mesesDespesas[mes] || 0)]
   }, [])
 
@@ -238,12 +289,12 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           <p className='text-3xl font-bold text-red-400'>R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.length} lançamento{despesasFiltradas.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${ saldoMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5' }`}>
-          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo do mês</p>
-          <p className={`text-3xl font-bold ${ saldoMes >= 0 ? 'text-emerald-400' : 'text-red-400' }`}>
-            {saldoMes >= 0 ? '+' : ''}R$ {saldoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${ saldoAcumuladoAteMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5' }`}>
+          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo acumulado</p>
+          <p className={`text-3xl font-bold ${ saldoAcumuladoAteMes >= 0 ? 'text-emerald-400' : 'text-red-400' }`}>
+            {saldoAcumuladoAteMes >= 0 ? '+' : ''}R$ {saldoAcumuladoAteMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
-          <p className='text-xs text-white/30 mt-1'>{saldoMes >= 0 ? 'Superávit' : 'Déficit'} no período</p>
+          <p className='text-xs text-white/30 mt-1'>{saldoAcumuladoAteMes >= 0 ? 'Superávit' : 'Déficit'} acumulado até {new Date(anoSel, mesSel - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
         </div>
       </div>
 

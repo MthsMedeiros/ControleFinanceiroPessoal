@@ -26,11 +26,13 @@ export const UseFetch = (url) => {
     const httpConfig = (data, method) =>{
         
         if(method === "POST"){
+            
             setConfig({
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
+                
                 body: JSON.stringify(data)
             });
         }

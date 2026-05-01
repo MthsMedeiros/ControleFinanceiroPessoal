@@ -8,7 +8,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
     //Filtro de Mes
     const [mesAnoAtual, setMesAnoAtual] = useState(new Date())
     const [meses] = useState(["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"])
-    
+
 
 
 
@@ -16,6 +16,9 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
     const [descricao, setDescricao] = useState("")
     const [valor, setValor] = useState("")
     const [date, setDate] = useState("")
+    const [recorrencia, setRecorrencia] = useState(false)
+    const [recebido, setRecebido] = useState(false)
+
     const [editing, setEditing] = useState(false)
 
     const inputDesc = useRef(null)
@@ -24,24 +27,26 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
 
     const filtrarPorMes = (lista) => {
-        
+
         const ano = mesAnoAtual.getFullYear()
-        const mes = mesAnoAtual.getMonth() + 1 
-    return lista.filter(item => {
-      if (!item.data || item.data === '--Sem data definida--') return false
-      const [, m, y] = item.data.split('/')
-      return parseInt(m) === mes && parseInt(y) === ano
-    })
-  }
+        const mes = mesAnoAtual.getMonth() + 1
+        return lista.filter(item => {
+            if (!item.data || item.data === '--Sem data definida--') return false
+            const [, m, y] = item.data.split('/')
+            return parseInt(m) === mes && parseInt(y) === ano
+        })
+    }
 
-  const receitasFiltradas = filtrarPorMes(listReceitas)
+    const receitasFiltradas = filtrarPorMes(listReceitas)
 
-    function editItem(id, descricao, valor, date) {
+    function editItem(id, descricao, valor, date, recorrencia, recebido) {
 
         setId(id)
         setDescricao(descricao)
         setValor(valor)
         setDate(date.split('/').reverse().join('-'))
+        setRecorrencia(recorrencia)
+        setRecebido(recebido)
 
 
 
@@ -58,6 +63,35 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
         return total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     }
 
+    function dateFactory(date) {
+        const [dia, mes, ano] = date.split('/')
+        let trueDate = new Date(ano, mes - 1, dia)
+
+        return trueDate
+    }
+
+    function sumMonth(date) {
+        const trueDate = dateFactory(date)
+        let actualDay = trueDate.getDate()
+        let lastDayMonth = new Date(trueDate.getFullYear(), trueDate.getMonth() + 1, 0).getDate()
+        let plusMonth
+
+        trueDate.setDate(1)
+
+        trueDate.setMonth(trueDate.getMonth() + 1)
+
+        if (actualDay > lastDayMonth) {
+            plusMonth = new Date(trueDate.getFullYear(), trueDate.getMonth(), Math.min(actualDay, lastDayMonth))
+        } else {
+            plusMonth = new Date(trueDate.getFullYear(), trueDate.getMonth(), actualDay)
+
+        }
+
+        return plusMonth.toISOString().split('T')[0].split('-').reverse().join('/')
+
+
+    }
+
     const handleSubmit = async (e) => {
 
         e.preventDefault()
@@ -66,27 +100,63 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
         if (editing == false) {
 
-            const dataReceita = {
-                descricao: descricao,
-                valor: valor,
-                data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/')
+
+
+
+            const receitasRecorrentes = []
+            if (recorrencia) {
+
+                receitasRecorrentes[0] = { descricao, valor, data: date.split('-').reverse().join('/'), recebido, recorrencia }
+                for (let i = 1; i <= 11; i++) {
+                    receitasRecorrentes[i] = { descricao, valor, data: sumMonth(receitasRecorrentes[i - 1].data), recebido, recorrencia }
+                }
+
+                for (const receita of receitasRecorrentes) {
+                    await fetch('http://localhost:3001/receitas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(receita)
+                    })
+                }
+                
+                httpConfig(receitasRecorrentes[11], 'POST')
+
+            } else {
+                receitasRecorrentes = {
+                    descricao: descricao,
+                    valor: valor,
+                    data: date.split('-').reverse().join('/'),
+                    recebido: recebido,
+                    recorrencia: recorrencia
+                }
+                httpConfig(receitasRecorrentes, 'POST')
             }
-            httpConfig(dataReceita, 'POST')
+
+
+
+
+            //httpConfig(dataReceita, 'POST')
             setDescricao("")
             setValor("")
             setDate("")
+            setRecebido(false)
+            setRecorrencia(false)
         } else {
             const dataUpdateReceita = {
                 id: id,
                 descricao: descricao,
                 valor: valor,
-                data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/')
+                data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/'),
+                recebido: recebido,
+                recorrencia: recorrencia
             }
             httpConfig(dataUpdateReceita, 'PATCH')
             setEditing(false)
             setDescricao("")
             setValor("")
             setDate("")
+            setRecebido(false)
+            setRecorrencia(false)
         }
 
     }
@@ -98,7 +168,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
         httpConfig(dataForDelete, 'DELETE')
     }
- 
+
     return (
         <div className='mt-10 flex flex-col gap-8 px-6 max-w-5xl mx-auto w-full'>
 
@@ -115,7 +185,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                     {editing ? '✏️ Editando receita' : '+ Nova receita'}
                 </h2>
                 <form className='flex flex-wrap gap-4 items-end' onSubmit={handleSubmit}>
-                    <label className='flex flex-col gap-1 flex-1 min-w-40'>
+                    <label className='flex flex-col gap-1 flex-1 min-w-30'>
                         <span className='text-xs text-white/50 uppercase tracking-wider'>Descrição</span>
                         <input
                             ref={inputDesc} required maxLength={50} value={descricao}
@@ -124,7 +194,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                             type="text" placeholder="Ex: Salário"
                         />
                     </label>
-                    <label className='flex flex-col gap-1 w-36'>
+                    <label className='flex flex-col gap-1 flex-1 min-w-5'>
                         <span className='text-xs text-white/50 uppercase tracking-wider'>Valor (R$)</span>
                         <input
                             ref={inputValor} required value={valor}
@@ -143,6 +213,28 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                             type="date"
                         />
                     </label>
+                    {/*-------------------------------------------------Recorrencia--------------------------------------------------*/}
+                    <label className='self-start flex flex-col items-center justify-start gap-5  px-4 py-1 '>
+                        <span className='text-xs text-white/50 uppercase tracking-wider'>Recorrência</span>
+                        <input
+                            type="checkbox"
+                            checked={recorrencia}
+                            onChange={(e) => setRecorrencia(e.target.checked)}
+                        />
+
+                    </label>
+
+                    {/*-------------------------------------------------Baixa--------------------------------------------------*/}
+                    <label className='self-start flex flex-col items-center justify-start gap-5  px-4 py-1 '>
+                        <span className='text-xs text-white/50 uppercase tracking-wider'>Recebido</span>
+                        <input
+                            type="checkbox"
+
+                            checked={recebido}
+                            onChange={(e) => setRecebido(e.target.checked)}
+                        />
+                    </label>
+
                     {loading ? (
                         <button type="button" className='flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-white transition-all duration-200 bg-blue-600 opacity-70 cursor-not-allowed'>
                             <svg aria-hidden="true" className="w-4 h-4 animate-spin fill-white text-white/30" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -176,7 +268,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
                 {/*Div Filtro Mes*/}
                 <div className='mt-8 flex items-center justify-center gap-4'>
-                    
+
                     {/*Div Seta esquerda*/}
                     <div>
                         <button onClick={() => setMesAnoAtual(new Date(mesAnoAtual.getFullYear(), mesAnoAtual.getMonth() - 1, 1))} className='flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-blue-500/30 border border-white/20 hover:border-blue-400 text-white/60 hover:text-white transition-all duration-200'>
@@ -213,6 +305,8 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                             <th className='text-left px-6 py-4 font-medium'>Data</th>
                             <th className='text-left px-6 py-4 font-medium'>Descrição</th>
                             <th className='text-right px-6 py-4 font-medium'>Valor</th>
+                            <th className='text-center px-6 py-4 font-medium'>Recorrência</th>
+                            <th className='text-center px-6 py-4 font-medium'>Baixa</th>
                             <th className='text-center px-6 py-4 font-medium'>Ações</th>
                         </tr>
                     </thead>
@@ -230,43 +324,61 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                             </tr>
                         ) : (
                             <>
-                        {listReceitas.length === 0 && (
-                            <tr>
-                                <td colSpan={4} className='text-center py-10 text-white/30'>Nenhuma receita cadastrada</td>
-                            </tr>
-                        )}
-                        {listReceitas.map((receita, index) => (
-                            parseInt(receita.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(receita.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
-                             
-                            <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
-                                <td className='px-6 py-4 text-white/50'>{receita.data}</td>
-                                <td className='px-6 py-4 text-white font-medium'>{receita.descricao}</td>
-                                <td className='px-6 py-4 text-right text-green-400 font-semibold'>
-                                    R$ {parseFloat(receita.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </td>
-                                <td className='px-6 py-4'>
-                                    <div className='flex gap-2 justify-center'>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setEditing(true); editItem(receita.id, receita.descricao, receita.valor, receita.data) }}
-                                            className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'
-                                        >
-                                            Editar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDelete(receita.id)}
-                                            className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
-                                        >
-                                            Excluir
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                                               
-                            ) : null
-                            
-                        ))}
+                                {listReceitas.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className='text-center py-10 text-white/30'>Nenhuma receita cadastrada</td>
+                                    </tr>
+                                )}
+                                {listReceitas.map((receita, index) => (
+                                    receita.data && receita.data.includes('/') &&
+                                        parseInt(receita.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(receita.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
+
+                                        <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
+                                            <td className='px-6 py-4 text-white/50'>{receita.data}</td>
+                                            <td className='px-6 py-4 text-white font-medium'>{receita.descricao}</td>
+
+                                            <td className='px-6 py-4 text-right text-green-400 font-semibold'>
+                                                R$ {parseFloat(receita.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </td>
+                                            <td className='px-6 py-4 text-center'>
+                                                {receita.recorrencia ? (
+                                                    <span className='text-blue-400 font-semibold'>Recorrente</span>
+                                                ) : (
+                                                    <span className='text-yellow-400 font-semibold'>Única</span>
+                                                )}
+                                            </td>
+
+                                            <td className='px-6 py-4 text-center'>
+                                                {receita.recebido ? (
+                                                    <span className='text-green-400 font-semibold'>Recebido</span>
+                                                ) : (
+                                                    <span className='text-red-400 font-semibold'>Pendente</span>
+                                                )}
+                                            </td>
+                                            <td className='px-6 py-4'>
+
+                                                <div className='flex gap-2 justify-center'>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setEditing(true); editItem(receita.id, receita.descricao, receita.valor, receita.data, receita.recorrencia, receita.recebido) }}
+                                                        className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDelete(receita.id)}
+                                                        className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                    ) : null
+
+                                ))}
                             </>
                         )}
                     </tbody>
@@ -276,6 +388,8 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                             <td className='px-6 py-4 text-right text-green-400 font-bold text-base'>
                                 R$ {calculaTotalMes()}
                             </td>
+                            <td></td>
+                            <td></td>
                             <td></td>
                         </tr>
                     </tfoot>

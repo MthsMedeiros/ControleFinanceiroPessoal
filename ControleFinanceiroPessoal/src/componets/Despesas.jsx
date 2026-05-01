@@ -11,6 +11,8 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
   const [descricao, setDescricao] = useState("")
   const [valor, setValor] = useState("")
   const [date, setDate] = useState("")
+  const [recorrencia, setRecorrencia] = useState(false)
+  const [pago, setPago] = useState(false)
   const [editing, setEditing] = useState(false)
 
   const inputDesc = useRef(null)
@@ -18,48 +20,79 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
   const inputDate = useRef(null)
 
 
-  function editItem(id, descricao, valor, date) {
-
+  function editItem(id, descricao, valor, date, recorrencia, pago) {
     setId(id)
     setDescricao(descricao)
     setValor(valor)
     setDate(date.split('/').reverse().join('-'))
+    setRecorrencia(recorrencia)
+    setPago(pago)
+  }
 
+  function dateFactory(date) {
+    const [dia, mes, ano] = date.split('/')
+    return new Date(ano, mes - 1, dia)
+  }
 
-
-
+  function sumMonth(date) {
+    const trueDate = dateFactory(date)
+    const actualDay = trueDate.getDate()
+    const lastDayMonth = new Date(trueDate.getFullYear(), trueDate.getMonth() + 1, 0).getDate()
+    trueDate.setDate(1)
+    trueDate.setMonth(trueDate.getMonth() + 1)
+    const plusMonth = new Date(trueDate.getFullYear(), trueDate.getMonth(), Math.min(actualDay, lastDayMonth))
+    return plusMonth.toISOString().split('T')[0].split('-').reverse().join('/')
   }
 
   const handleSubmit = async (e) => {
 
     e.preventDefault()
 
-
-
     if (editing == false) {
 
-      const dataDespesa = {
-        descricao: descricao,
-        valor: valor,
-        data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/')
+      const despesasRecorrentes = []
+      if (recorrencia) {
+
+        despesasRecorrentes[0] = { descricao, valor, data: date.split('-').reverse().join('/'), pago, recorrencia }
+        for (let i = 1; i <= 11; i++) {
+          despesasRecorrentes[i] = { descricao, valor, data: sumMonth(despesasRecorrentes[i - 1].data), pago, recorrencia }
+        }
+
+        for (const despesa of despesasRecorrentes) {
+          await fetch('http://localhost:3001/despesas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(despesa)
+          })
+        }
+        httpConfig(despesasRecorrentes[11], 'POST')
+
+      } else {
+        const dataDespesa = { descricao, valor, data: date.split('-').reverse().join('/'), pago, recorrencia }
+        httpConfig(dataDespesa, 'POST')
       }
-      httpConfig(dataDespesa, 'POST')
+
       setDescricao("")
       setValor("")
       setDate("")
+      setPago(false)
+      setRecorrencia(false)
     } else {
       const dataUpdateDespesa = {
         id: id,
         descricao: descricao,
         valor: valor,
-        data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/')
+        data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/'),
+        pago: pago,
+        recorrencia: recorrencia
       }
-      console.log(dataUpdateDespesa)
       httpConfig(dataUpdateDespesa, 'PATCH')
       setEditing(false)
       setDescricao("")
       setValor("")
       setDate("")
+      setPago(false)
+      setRecorrencia(false)
     }
 
   }
@@ -75,6 +108,7 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
   function calculaTotalMes() {
     let total = 0;
     listDespesas.forEach(element => {
+      if (!element.data || !element.data.includes('/')) return
       if (parseInt(element.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(element.data.split('/')[2]) === mesAnoAtual.getFullYear()) {
         total += parseFloat(element.valor)
       }
@@ -82,10 +116,11 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
     return total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   }
 
-  const despesasFiltradas = listDespesas.filter(element =>
-    parseInt(element.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) &&
-    parseInt(element.data.split('/')[2]) === mesAnoAtual.getFullYear()
-  )
+  const despesasFiltradas = listDespesas.filter(element => {
+    if (!element.data || !element.data.includes('/')) return false
+    return parseInt(element.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) &&
+      parseInt(element.data.split('/')[2]) === mesAnoAtual.getFullYear()
+  })
 
   return (
     <div className='mt-10 flex flex-col gap-8 px-6 max-w-5xl mx-auto w-full'>
@@ -103,7 +138,7 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
           {editing ? '✏️ Editando despesa' : '+ Nova despesa'}
         </h2>
         <form className='flex flex-wrap gap-4 items-end' onSubmit={handleSubmit}>
-          <label className='flex flex-col gap-1 flex-1 min-w-40'>
+          <label className='flex flex-col gap-1 flex-1 min-w-30'>
             <span className='text-xs text-white/50 uppercase tracking-wider'>Descrição</span>
             <input
               ref={inputDesc} required maxLength={50} value={descricao}
@@ -112,7 +147,7 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               type="text" placeholder="Ex: Aluguel"
             />
           </label>
-          <label className='flex flex-col gap-1 w-36'>
+          <label className='flex flex-col gap-1 flex-1 min-w-5'>
             <span className='text-xs text-white/50 uppercase tracking-wider'>Valor (R$)</span>
             <input
               ref={inputValor} required value={valor}
@@ -129,6 +164,24 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               className='bg-white/10 border border-white/20 focus:border-red-400 focus:outline-none rounded-xl px-4 py-2.5 text-white/80 transition-colors duration-200'
               required
               type="date"
+            />
+          </label>
+          {/*-------------------------------------------------Recorrencia--------------------------------------------------*/}
+          <label className='self-start flex flex-col items-center justify-start gap-5 px-4 py-1'>
+            <span className='text-xs text-white/50 uppercase tracking-wider'>Recorrência</span>
+            <input
+              type="checkbox"
+              checked={recorrencia}
+              onChange={(e) => setRecorrencia(e.target.checked)}
+            />
+          </label>
+          {/*-------------------------------------------------Pago--------------------------------------------------*/}
+          <label className='self-start flex flex-col items-center justify-start gap-5 px-4 py-1'>
+            <span className='text-xs text-white/50 uppercase tracking-wider'>Pago</span>
+            <input
+              type="checkbox"
+              checked={pago}
+              onChange={(e) => setPago(e.target.checked)}
             />
           </label>
           {loading ? (
@@ -150,7 +203,7 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               {editing && (
                 <button
                   type="button"
-                  onClick={() => { setEditing(false); setDescricao(''); setValor(''); setDate('') }}
+                  onClick={() => { setEditing(false); setDescricao(''); setValor(''); setDate(''); setRecorrencia(false); setPago(false) }}
                   className='px-5 py-2.5 rounded-xl font-semibold text-white/50 hover:text-white border border-white/10 hover:border-white/30 transition-all duration-200 hover:bg-white/10'
                 >
                   Cancelar
@@ -200,13 +253,15 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               <th className='text-left px-6 py-4 font-medium'>Data</th>
               <th className='text-left px-6 py-4 font-medium'>Descrição</th>
               <th className='text-right px-6 py-4 font-medium'>Valor</th>
+              <th className='text-center px-6 py-4 font-medium'>Recorrência</th>
+              <th className='text-center px-6 py-4 font-medium'>Pago</th>
               <th className='text-center px-6 py-4 font-medium'>Ações</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-white/5'>
             {loading ? (
               <tr>
-                <td colSpan={4} className='text-center py-6'>
+                <td colSpan={6} className='text-center py-6'>
                   <div className='flex items-center justify-center'>
                     <svg aria-hidden="true" className="w-8 h-8 animate-spin fill-red-500 text-white/20" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
@@ -219,22 +274,37 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               <>
             {listDespesas.length === 0 && (
               <tr>
-                <td colSpan={4} className='text-center py-10 text-white/30'>Nenhuma despesa cadastrada</td>
+                <td colSpan={6} className='text-center py-10 text-white/30'>Nenhuma despesa cadastrada</td>
               </tr>
             )}
             {listDespesas.map((despesa, index) => (
-              parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
+              despesa.data && despesa.data.includes('/') &&
+                parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
               <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
                 <td className='px-6 py-4 text-white/50'>{despesa.data}</td>
                 <td className='px-6 py-4 text-white font-medium'>{despesa.descricao}</td>
                 <td className='px-6 py-4 text-right text-red-400 font-semibold'>
                   R$ {parseFloat(despesa.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </td>
+                <td className='px-6 py-4 text-center'>
+                  {despesa.recorrencia ? (
+                    <span className='text-blue-400 font-semibold'>Recorrente</span>
+                  ) : (
+                    <span className='text-yellow-400 font-semibold'>Única</span>
+                  )}
+                </td>
+                <td className='px-6 py-4 text-center'>
+                  {despesa.pago ? (
+                    <span className='text-green-400 font-semibold'>Pago</span>
+                  ) : (
+                    <span className='text-red-400 font-semibold'>Pendente</span>
+                  )}
+                </td>
                 <td className='px-6 py-4'>
                   <div className='flex gap-2 justify-center'>
                     <button
                       type="button"
-                      onClick={() => { setEditing(true); editItem(despesa.id, despesa.descricao, despesa.valor, despesa.data) }}
+                      onClick={() => { setEditing(true); editItem(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, despesa.pago) }}
                       className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'
                     >
                       Editar
@@ -260,6 +330,8 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               <td className='px-6 py-4 text-right text-red-400 font-bold text-base'>
                 R$ {calculaTotalMes()}
               </td>
+              <td></td>
+              <td></td>
               <td></td>
             </tr>
           </tfoot>
