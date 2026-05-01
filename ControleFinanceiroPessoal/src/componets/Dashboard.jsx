@@ -16,6 +16,10 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const [mountId] = useState(() => Date.now()) // único por montagem do Dashboard
   const refMes = useRef(null)
 
+  const [hoveredAlert, setHoveredAlert] = useState(null)
+
+
+
 
   const filtrarPorMes = (lista) => {
     const [ano, mes] = mesSelecionado.split('-').map(Number)
@@ -30,13 +34,41 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   // Filtra receitas e despesas apenas do mês selecionado
   const receitasFiltradas = filtrarPorMes(listReceitas)
   const despesasFiltradas = filtrarPorMes(listDespesas)
-  
+
   // Soma todos os valores de receita do mês selecionado
   // reduce() começa com acc=0 e vai somando cada valor
   const totalReceitas = receitasFiltradas.reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
-  
+
   // Soma todos os valores de despesa do mês selecionado
   const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
+
+  function maturityDateReceitas(list) {
+    return list.some(receita => {
+      let [dd, mm, yyyy] = receita.data.split('/').map(Number)
+      let dataReceita = new Date(yyyy, mm - 1, dd)
+      dataReceita.setHours(0, 0, 0, 0) // Zera horas para comparar apenas data
+
+      let dataAtual = new Date()
+      dataAtual.setHours(0, 0, 0, 0) // Zera horas para comparar apenas data
+
+      return dataReceita < dataAtual && receita.recebido === false
+
+    })
+  }
+
+  function maturityDateDespesas(list) {
+    return list.some(despesa => {
+      let [dd, mm, yyyy] = despesa.data.split('/').map(Number)
+      let dataDespesa = new Date(yyyy, mm - 1, dd)
+      dataDespesa.setHours(0, 0, 0, 0)
+
+      let dataAtual = new Date()
+      dataAtual.setHours(0, 0, 0, 0)
+
+      return dataDespesa < dataAtual && despesa.pago === false
+
+    })
+  }
 
   // ===== GERADOR DE CORES PARA GRÁFICOS =====
   // Função que distribui cores da paleta de forma cíclica
@@ -82,7 +114,7 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   // Extrai o ano e mês selecionado do formato "YYYY-MM"
   // map(Number) converte strings em números: "2026" → 2026
   const [anoSel, mesSel] = mesSelecionado.split('-').map(Number)
-  
+
   // Soma TODAS as receitas de meses ANTERIORES + o mês selecionado
   // filter() seleciona apenas receitas que atendem a condição:
   //   - yyyy < anoSel: todos os anos anteriores
@@ -98,8 +130,13 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     // reduce() soma todos os valores filtrados em uma única variável
     // acc: acumulador (começa em 0)
     // r: item atual sendo processado
-    .reduce((acc, r) => acc + parseFloat(r.valor), 0)
-  
+    .reduce((acc, r) => {
+      if (r.recebido) {
+        return acc + parseFloat(r.valor)
+      }
+      return acc
+    }, 0)
+
   // Mesma lógica que acima, mas para despesas
   const totalDespesasAcumulado = listDespesas
     .filter(d => {
@@ -108,8 +145,13 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       const yyyy = parseInt(partes[2])
       return yyyy < anoSel || (yyyy === anoSel && mm <= mesSel)
     })
-    .reduce((acc, d) => acc + parseFloat(d.valor), 0)
-  
+    .reduce((acc, d) => {
+      if (d.pago) {
+        return acc + parseFloat(d.valor)
+      }
+      return acc
+    }, 0)
+
   // Calcula o saldo acumulado subtraindo despesas de receitas
   const saldoAcumuladoAteMes = totalReceitasAcumulado - totalDespesasAcumulado
 
@@ -280,18 +322,57 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       {/* Cards de resumo */}
       <div className='grid grid-cols-3 gap-6'>
         <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
-          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Receitas do mês</p>
+          <div className='flex justify-between'>
+            <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Receitas do mês</p>
+
+            {maturityDateReceitas(receitasFiltradas) && (
+              <div>
+                <svg
+                  onMouseEnter={() => setHoveredAlert("alertMaturityReceitas")}
+                  onMouseLeave={() => setHoveredAlert(null)}
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                {hoveredAlert === "alertMaturityReceitas" && (
+                  <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                    Existem Receitas Atrasadas
+                  </div>
+                )}
+              </div>)
+            }
+
+          </div>
           <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className='text-xs text-white/30 mt-1'>{receitasFiltradas.length} lançamento{receitasFiltradas.length !== 1 ? 's' : ''}</p>
         </div>
         <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
-          <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Despesas do mês</p>
+          <div className='flex justify-between'>
+            <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Despesas do mês</p>
+
+            {maturityDateDespesas(despesasFiltradas) && (
+              <div>
+                <svg
+                  onMouseEnter={() => setHoveredAlert("alertMaturityDespesas")}
+                  onMouseLeave={() => setHoveredAlert(null)}
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                {hoveredAlert === "alertMaturityDespesas" && (
+                  <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                    Existem Despesas Atrasadas
+                  </div>
+                )}
+              </div>)
+            }
+          </div>
           <p className='text-3xl font-bold text-red-400'>R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.length} lançamento{despesasFiltradas.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${ saldoAcumuladoAteMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5' }`}>
+        <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${saldoAcumuladoAteMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
           <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo acumulado</p>
-          <p className={`text-3xl font-bold ${ saldoAcumuladoAteMes >= 0 ? 'text-emerald-400' : 'text-red-400' }`}>
+          <p className={`text-3xl font-bold ${saldoAcumuladoAteMes >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {saldoAcumuladoAteMes >= 0 ? '+' : ''}R$ {saldoAcumuladoAteMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
           <p className='text-xs text-white/30 mt-1'>{saldoAcumuladoAteMes >= 0 ? 'Superávit' : 'Déficit'} acumulado até {new Date(anoSel, mesSel - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>

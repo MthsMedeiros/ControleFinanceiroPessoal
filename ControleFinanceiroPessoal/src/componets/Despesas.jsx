@@ -14,6 +14,7 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
   const [recorrencia, setRecorrencia] = useState(false)
   const [pago, setPago] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [hoveredAlert, setHoveredAlert] = useState(null)
 
   const inputDesc = useRef(null)
   const inputValor = useRef(null)
@@ -22,11 +23,11 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
 
   function editItem(id, descricao, valor, date, recorrencia, pago) {
     setId(id)
-    setDescricao(descricao)
-    setValor(valor)
-    setDate(date.split('/').reverse().join('-'))
-    setRecorrencia(recorrencia)
-    setPago(pago)
+    setDescricao(descricao ?? "")
+    setValor(valor ?? "")
+    setDate(date && date.includes('/') ? date.split('/').reverse().join('-') : "")
+    setRecorrencia(recorrencia ?? false)
+    setPago(pago ?? false)
   }
 
   function dateFactory(date) {
@@ -95,6 +96,28 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
       setRecorrencia(false)
     }
 
+  }
+
+  function maturityDate(date) {
+    const [dia, mes, ano] = date.split('/')
+    let trueDate = new Date(ano, mes - 1, dia)
+    trueDate.setHours(0, 0, 0, 0)
+    let dtAtual = new Date()
+    dtAtual.setHours(0, 0, 0, 0)
+    return trueDate < dtAtual
+    
+  }
+
+  async function editingByGrid(id, descricao, valor, date, recorrencia, pago) {
+    const dataUpdateDespesa = {
+      id: id,
+      descricao: descricao,
+      valor: valor,
+      data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/'),
+      recorrencia: recorrencia,
+      pago: pago,
+    }
+    httpConfig(dataUpdateDespesa, 'PATCH')
   }
 
   const handleDelete = async (id) => {
@@ -281,7 +304,27 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
               despesa.data && despesa.data.includes('/') &&
                 parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
               <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
-                <td className='px-6 py-4 text-white/50'>{despesa.data}</td>
+                <td className='px-6 py-4 text-white/50'>
+                  <div className='flex gap-3 items-center'>
+                    {despesa.data}
+                    {maturityDate(despesa.data) && despesa.pago === false ? (
+                      <div className='relative'>
+                        <svg
+                          onMouseEnter={() => setHoveredAlert('alertMaturity-' + index)}
+                          onMouseLeave={() => setHoveredAlert(null)}
+                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                        </svg>
+                        {hoveredAlert === ('alertMaturity-' + index) && (
+                          <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                            Despesa não paga
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                </td>
                 <td className='px-6 py-4 text-white font-medium'>{despesa.descricao}</td>
                 <td className='px-6 py-4 text-right text-red-400 font-semibold'>
                   R$ {parseFloat(despesa.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -302,6 +345,43 @@ const Despesas = ( { listDespesas,httpConfig, loading }) => {
                 </td>
                 <td className='px-6 py-4'>
                   <div className='flex gap-2 justify-center'>
+                    {despesa.pago ? (
+                      <div className='relative'>
+                        <button
+                          onClick={() => editingByGrid(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, false)}
+                          onMouseEnter={() => setHoveredAlert(index)}
+                          onMouseLeave={() => setHoveredAlert(null)}
+                          className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                        {hoveredAlert === index && (
+                          <div className='absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                            Marcar como pendente
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className='relative'>
+                        <button
+                          onClick={() => editingByGrid(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, true)}
+                          onMouseEnter={() => setHoveredAlert(index)}
+                          onMouseLeave={() => setHoveredAlert(null)}
+                          className='px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/20 text-green-400 hover:bg-green-500/40 border border-green-500/30 transition-all duration-200'
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </button>
+                        {hoveredAlert === index && (
+                          <div className='absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                            Marcar como pago
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => { setEditing(true); editItem(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, despesa.pago) }}

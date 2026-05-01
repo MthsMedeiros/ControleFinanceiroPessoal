@@ -1,108 +1,124 @@
 {
   "receitas": [
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/04/2026",
-      "recebido": false,
-      "recorrencia": true,
-      "id": 1
-    },
-    {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/05/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/06/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 2
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/06/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/07/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 3
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/07/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/08/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 4
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/08/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/09/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 5
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/09/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/10/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 6
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/10/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/11/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 7
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/11/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/12/2026",
       "recebido": false,
       "recorrencia": true,
       "id": 8
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/12/2026",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/01/2027",
       "recebido": false,
       "recorrencia": true,
       "id": 9
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/01/2027",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/02/2027",
       "recebido": false,
       "recorrencia": true,
       "id": 10
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/02/2027",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/03/2027",
       "recebido": false,
       "recorrencia": true,
       "id": 11
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/03/2027",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/04/2027",
       "recebido": false,
       "recorrencia": true,
       "id": 12
     },
     {
-      "descricao": "Salário",
-      "valor": "5400",
-      "data": "28/03/2027",
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/04/2027",
       "recebido": false,
       "recorrencia": true,
       "id": 13
+    },
+    {
+      "descricao": "teste2",
+      "valor": "213",
+      "data": "01/05/2026",
+      "recebido": false,
+      "recorrencia": false,
+      "id": 14
+    },
+    {
+      "descricao": "teste",
+      "valor": "1",
+      "data": "01/05/2026",
+      "recebido": false,
+      "recorrencia": false,
+      "id": 15
+    },
+    {
+      "descricao": "teste",
+      "valor": "1",
+      "data": "27/04/2026",
+      "recebido": false,
+      "recorrencia": false,
+      "id": 16
     }
   ],
   "despesas": [
@@ -110,19 +126,24 @@
       "descricao": "Energia",
       "valor": "500",
       "data": "10/05/2026",
-      "id": 3
+      "id": 3,
+      "pago": false
     },
     {
       "descricao": "Cartao Nubank",
       "valor": "2368.35",
       "data": "29/04/2026",
-      "id": 5
+      "id": 5,
+      "pago": true,
+      "recorrencia": false
     },
     {
       "descricao": "Cartao Itaú",
       "valor": "587.99",
       "data": "29/04/2026",
-      "id": 7
+      "id": 7,
+      "pago": true,
+      "recorrencia": false
     },
     {
       "descricao": "Aluguel",
@@ -136,7 +157,7 @@
       "descricao": "Aluguel",
       "valor": "1100",
       "data": "20/05/2026",
-      "pago": false,
+      "pago": true,
       "recorrencia": true,
       "id": 9
     },
@@ -240,7 +261,7 @@
       "descricao": "Nucell",
       "valor": "45",
       "data": "05/05/2026",
-      "pago": false,
+      "pago": true,
       "recorrencia": true,
       "id": 22
     },
@@ -448,7 +469,7 @@
       "descricao": "Fies",
       "valor": "319",
       "data": "30/05/2026",
-      "pago": false,
+      "pago": true,
       "recorrencia": true,
       "id": 48
     },

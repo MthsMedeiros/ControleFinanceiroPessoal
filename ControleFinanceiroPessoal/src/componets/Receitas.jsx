@@ -20,10 +20,13 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
     const [recebido, setRecebido] = useState(false)
 
     const [editing, setEditing] = useState(false)
+    const [hoveredAlert, setHoveredAlert] = useState(null)
+
 
     const inputDesc = useRef(null)
     const inputValor = useRef(null)
     const inputDate = useRef(null)
+
 
 
     const filtrarPorMes = (lista) => {
@@ -39,14 +42,25 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
     const receitasFiltradas = filtrarPorMes(listReceitas)
 
+    function maturityDate(date) {
+        const [dia, mes, ano] = date.split('/')
+        let trueDate = new Date(ano, mes - 1, dia)
+        trueDate.setHours(0, 0, 0, 0)
+        let dtAtual = new Date()
+        dtAtual.setHours(0, 0, 0, 0)
+        if (trueDate < dtAtual) {
+            return true
+        } return false
+    }
+
     function editItem(id, descricao, valor, date, recorrencia, recebido) {
 
         setId(id)
-        setDescricao(descricao)
-        setValor(valor)
-        setDate(date.split('/').reverse().join('-'))
-        setRecorrencia(recorrencia)
-        setRecebido(recebido)
+        setDescricao(descricao == undefined ? "" : descricao)
+        setValor(valor == undefined ? "" : valor)
+        setDate(date == undefined ? "" : date.includes('/') ? date.split('/').reverse().join('-') : '')
+        setRecorrencia(recorrencia == undefined ? false : recorrencia)
+        setRecebido(recebido == undefined ? false : recebido)
 
 
 
@@ -92,7 +106,22 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
     }
 
+    async function editingByGrid(id, descricao, valor, date, recorrencia, recebido) {
+        const dataUpdateReceita = {
+            id: id,
+            descricao: descricao,
+            valor: valor,
+            data: date === "" || date == null ? "--Sem data definida--" : date.split('-').reverse().join('/'),
+            recorrencia: recorrencia,
+            recebido: recebido,
+
+        }
+
+        httpConfig(dataUpdateReceita, 'PATCH')
+    }
+
     const handleSubmit = async (e) => {
+
 
         e.preventDefault()
 
@@ -103,7 +132,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
 
 
 
-            const receitasRecorrentes = []
+            let receitasRecorrentes = []
             if (recorrencia) {
 
                 receitasRecorrentes[0] = { descricao, valor, data: date.split('-').reverse().join('/'), recebido, recorrencia }
@@ -118,7 +147,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                         body: JSON.stringify(receita)
                     })
                 }
-                
+
                 httpConfig(receitasRecorrentes[11], 'POST')
 
             } else {
@@ -158,6 +187,8 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
             setRecebido(false)
             setRecorrencia(false)
         }
+
+
 
     }
 
@@ -216,11 +247,15 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                     {/*-------------------------------------------------Recorrencia--------------------------------------------------*/}
                     <label className='self-start flex flex-col items-center justify-start gap-5  px-4 py-1 '>
                         <span className='text-xs text-white/50 uppercase tracking-wider'>Recorrência</span>
-                        <input
+                        {editing ? <input disabled
                             type="checkbox"
                             checked={recorrencia}
                             onChange={(e) => setRecorrencia(e.target.checked)}
-                        />
+                        /> : <input
+                            type="checkbox"
+                            checked={recorrencia}
+                            onChange={(e) => setRecorrencia(e.target.checked)}
+                        />}
 
                     </label>
 
@@ -334,7 +369,27 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                                         parseInt(receita.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(receita.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
 
                                         <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
-                                            <td className='px-6 py-4 text-white/50'>{receita.data}</td>
+                                            <td className='px-6 py-4 text-white/50'>
+                                                <div className='flex gap-3 items-center'>
+                                                    {receita.data}
+                                                    {maturityDate(receita.data) && receita.recebido === false ? (
+                                                        <div className='relative'>
+                                                            <svg
+                                                                onMouseEnter={() => setHoveredAlert("alertMaturity")}
+                                                                onMouseLeave={() => setHoveredAlert(null)}
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                                                            >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                                            </svg>
+                                                            {hoveredAlert === "alertMaturity" && (
+                                                                <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                                                                    Receita Atrasada
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                            </td>
                                             <td className='px-6 py-4 text-white font-medium'>{receita.descricao}</td>
 
                                             <td className='px-6 py-4 text-right text-green-400 font-semibold'>
@@ -358,6 +413,37 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                                             <td className='px-6 py-4'>
 
                                                 <div className='flex gap-2 justify-center'>
+                                                    {receita.recebido ?
+                                                        <div className='relative'>
+                                                            <button onMouseEnter={() => setHoveredAlert("btn-pendente")} onMouseLeave={() => { setHoveredAlert(null) }} onClick={() => editingByGrid(receita.id, receita.descricao, receita.valor, receita.data, receita.recorrencia, false)} title="Marcar como pendente" className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'>
+
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                            {hoveredAlert === "btn-pendente" && (
+                                                                <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10">
+                                                                    Marcar como pendente
+                                                                </div>
+                                                            )}
+                                                        </div >
+                                                        :
+                                                        <div className='relative'>
+                                                            <button onMouseEnter={() => setHoveredAlert("btn-recebido")} onMouseLeave={() => { setHoveredAlert(null) }} onClick={() => editingByGrid(receita.id, receita.descricao, receita.valor, receita.data, receita.recorrencia, true)} title="Marcar como recebido" className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                                </svg>
+                                                            </button>
+                                                            {hoveredAlert === "btn-recebido" && (
+                                                                <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10">
+                                                                    Marcar como recebido
+                                                                </div>
+                                                            )}
+
+                                                        </div>
+                                                    }
+
+
                                                     <button
                                                         type="button"
                                                         onClick={() => { setEditing(true); editItem(receita.id, receita.descricao, receita.valor, receita.data, receita.recorrencia, receita.recebido) }}

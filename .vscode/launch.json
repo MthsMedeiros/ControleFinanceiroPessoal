@@ -9,7 +9,14 @@
             "request": "launch",
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}/ControleFinanceiroPessoal",
+            "sourceMapPathOverrides": {
+                "/@fs/*": "/*"
+            },
+            "skipFiles": [
+                "**/node_modules/**",
+                "<node_internals>/**"
+            ]
         }
     ]
 }
