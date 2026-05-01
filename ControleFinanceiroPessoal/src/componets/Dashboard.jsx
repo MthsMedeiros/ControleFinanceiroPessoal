@@ -36,11 +36,14 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const despesasFiltradas = filtrarPorMes(listDespesas)
 
   // Soma todos os valores de receita do mês selecionado
-  // reduce() começa com acc=0 e vai somando cada valor
   const totalReceitas = receitasFiltradas.reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
+  // Soma apenas receitas recebidas do mês selecionado
+  const totalReceitasRecebidas = receitasFiltradas.filter(r => r.recebido).reduce((acc, r) => acc + parseFloat(r.valor), 0)
 
   // Soma todos os valores de despesa do mês selecionado
   const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
+  // Soma apenas despesas pagas do mês selecionado
+  const totalDespesasPagas = despesasFiltradas.filter(d => d.pago).reduce((acc, d) => acc + parseFloat(d.valor), 0)
 
   function maturityDateReceitas(list) {
     return list.some(receita => {
@@ -343,8 +346,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
             }
 
           </div>
-          <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <p className='text-xs text-white/30 mt-1'>{receitasFiltradas.length} lançamento{receitasFiltradas.length !== 1 ? 's' : ''}</p>
+          <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitasRecebidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-xs text-white/30 mt-1'>{receitasFiltradas.filter(r => r.recebido).length} de {receitasFiltradas.length} recebido{receitasFiltradas.filter(r => r.recebido).length !== 1 ? 's' : ''}</p>
         </div>
         <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
           <div className='flex justify-between'>
@@ -367,8 +370,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
               </div>)
             }
           </div>
-          <p className='text-3xl font-bold text-red-400'>R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.length} lançamento{despesasFiltradas.length !== 1 ? 's' : ''}</p>
+          <p className='text-3xl font-bold text-red-400'>R$ {totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.filter(d => d.pago).length} de {despesasFiltradas.length} pago{despesasFiltradas.filter(d => d.pago).length !== 1 ? 's' : ''}</p>
         </div>
         <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${saldoAcumuladoAteMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
           <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo acumulado</p>

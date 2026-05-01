@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 
 
-const Receitas = ({ listReceitas, httpConfig, loading }) => {
+const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, loading }) => {
 
 
 
@@ -140,15 +140,7 @@ const Receitas = ({ listReceitas, httpConfig, loading }) => {
                     receitasRecorrentes[i] = { descricao, valor, data: sumMonth(receitasRecorrentes[i - 1].data), recebido, recorrencia }
                 }
 
-                for (const receita of receitasRecorrentes) {
-                    await fetch('http://localhost:3001/receitas', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(receita)
-                    })
-                }
-
-                httpConfig(receitasRecorrentes[11], 'POST')
+                await httpConfigBatch(receitasRecorrentes)
 
             } else {
                 receitasRecorrentes = {

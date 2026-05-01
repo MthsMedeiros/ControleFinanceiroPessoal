@@ -14,8 +14,8 @@ function App() {
   let [isOpen, setIsOpen] = useState(false)
   let [page, setPage] = useState('Dashboard')
 
-  const { listReceitas, httpConfig: receitasConfig, loading: loadingReceitas } = UseFetch(url + '/receitas')
-  const { listDespesas, httpConfig: despesasConfig, loading: loadingDespesas } = UseFetch(url + '/despesas')
+  const { listReceitas, httpConfig: receitasConfig, httpConfigBatch: receitasBatch, loading: loadingReceitas } = UseFetch(url + '/receitas')
+  const { listDespesas, httpConfig: despesasConfig, httpConfigBatch: despesasBatch, loading: loadingDespesas } = UseFetch(url + '/despesas')
   const { listCartoes, httpConfig: cartoesConfig, loading: loadingCartoes } = UseFetch(url + '/cartoes')
 
   const handleSetPage = (newPage) => {
@@ -100,8 +100,8 @@ function App() {
         </nav>
         <div className='w-full h-full flex-1'>
             {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} />}
-            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} loading={loadingReceitas} />}
-            {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} loading={loadingDespesas} />}
+            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} httpConfigBatch={receitasBatch} loading={loadingReceitas} />}
+            {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} httpConfigBatch={despesasBatch} loading={loadingDespesas} />}
             {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} loading={loadingCartoes} />}
 
         </div>

@@ -13,7 +13,7 @@ export const UseFetch = (url) => {
 
     let [config, setConfig] = useState(null)
 
-    let [callFetchData, setCallFetchData] = useState(false)
+    let [callFetchData, setCallFetchData] = useState(0)
 
     let [loading, setLoading] = useState(false)
 
@@ -151,6 +151,25 @@ export const UseFetch = (url) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [config]);
 
-    return {listReceitas, listDespesas,listCartoes, httpConfig, loading};
+    const httpConfigBatch = async (items) => {
+        setLoading(true)
+        try {
+            for (const item of items) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                })
+                if (!response.ok) console.error(`Erro ao salvar item: ${response.status}`)
+            }
+        } catch(error) {
+            console.error('Erro ao enviar dados em lote:', error)
+        } finally {
+            setCallFetchData(prev => prev + 1)
+            setLoading(false)
+        }
+    }
+
+    return {listReceitas, listDespesas,listCartoes, httpConfig, httpConfigBatch, loading};
 };
 
