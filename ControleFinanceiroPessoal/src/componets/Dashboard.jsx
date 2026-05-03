@@ -9,7 +9,7 @@ import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, L
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler)
 
-const Dashboard = ({ listDespesas, listReceitas }) => {
+const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
   const hoje = new Date()
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
   const [mesSelecionado, setMesSelecionado] = useState(mesAtual)
@@ -30,6 +30,36 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     })
   }
 
+  // Extrai parcelas dos cartões ativas no mês selecionado com status de pagamento correto
+  const filtrarParcelasPorMes = () => {
+    const [ano, mes] = mesSelecionado.split('-').map(Number)
+    const result = []
+    listCartoes.forEach(cartao => {
+      if (cartao.parcelamentos && Array.isArray(cartao.parcelamentos)) {
+        cartao.parcelamentos.forEach(parcelamento => {
+          if (parcelamento.dataInicio && parcelamento.dataInicio.includes('/')) {
+            const [, mesI, anoI] = parcelamento.dataInicio.split('/').map(Number)
+            const diffMonths = (ano - anoI) * 12 + (mes - mesI)
+            const numero = diffMonths + 1
+            if (numero >= 1 && numero <= parcelamento.numeroParcelas) {
+              const parcelaObj = (parcelamento.parcelas || []).find(p => p.numero === numero)
+              result.push({
+                descricao: parcelamento.descricao,
+                numeroParcelas: parcelamento.numeroParcelas,
+                valorParcela: parcelamento.valorParcela,
+                numero,
+                pago: parcelaObj?.pago === true
+              })
+            }
+          }
+        })
+      }
+    })
+    return result
+  }
+
+  const parcelasFiltradas = filtrarParcelasPorMes()
+
   // ===== CÁLCULOS DO MÊS SELECIONADO =====
   // Filtra receitas e despesas apenas do mês selecionado
   const receitasFiltradas = filtrarPorMes(listReceitas)
@@ -40,10 +70,15 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   // Soma apenas receitas recebidas do mês selecionado
   const totalReceitasRecebidas = receitasFiltradas.filter(r => r.recebido).reduce((acc, r) => acc + parseFloat(r.valor), 0)
 
-  // Soma todos os valores de despesa do mês selecionado
-  const totalDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
-  // Soma apenas despesas pagas do mês selecionado
-  const totalDespesasPagas = despesasFiltradas.filter(d => d.pago).reduce((acc, d) => acc + parseFloat(d.valor), 0)
+  // Soma todos os valores de despesa do mês selecionado (despesas + parcelas dos cartões)
+  const totalDespesasEmDespesas = despesasFiltradas.reduce((acc, despesa) => acc + parseFloat(despesa.valor), 0)
+  const totalDespesasEmParcelas = parcelasFiltradas.reduce((acc, parcela) => acc + parseFloat(parcela.valorParcela || 0), 0)
+  const totalDespesas = totalDespesasEmDespesas + totalDespesasEmParcelas
+
+  // Soma apenas despesas pagas do mês selecionado (despesas pagas + parcelas pagas)
+  const totalDespesasPagasEmDespesas = despesasFiltradas.filter(d => d.pago).reduce((acc, d) => acc + parseFloat(d.valor), 0)
+  const totalDespesasPagasEmParcelas = parcelasFiltradas.filter(p => p.pago === true).reduce((acc, p) => acc + parseFloat(p.valorParcela || 0), 0)
+  const totalDespesasPagas = totalDespesasPagasEmDespesas + totalDespesasPagasEmParcelas
 
   function maturityDateReceitas(list) {
     return list.some(receita => {
@@ -72,6 +107,48 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
 
     })
   }
+
+  // Meses com receitas atrasadas FORA do mês selecionado
+  const mesesAtrasadosReceitas = (() => {
+    const [anoSel2, mesSel2] = mesSelecionado.split('-').map(Number)
+    const hoje2 = new Date(); hoje2.setHours(0,0,0,0)
+    const mesesMap = {}
+    listReceitas.forEach(r => {
+      if (!r.data || !r.data.includes('/') || r.recebido) return
+      const [dd, mm, yyyy] = r.data.split('/').map(Number)
+      if (yyyy === anoSel2 && mm === mesSel2) return // ignora o mês atual
+      const dataItem = new Date(yyyy, mm - 1, dd); dataItem.setHours(0,0,0,0)
+      if (dataItem < hoje2) {
+        const chave = `${String(mm).padStart(2,'0')}/${yyyy}`
+        mesesMap[chave] = true
+      }
+    })
+    return Object.keys(mesesMap).sort().map(chave => {
+      const [mm, yyyy] = chave.split('/')
+      return `${nomeMesesCompletos[parseInt(mm)-1]} ${yyyy}`
+    })
+  })()
+
+  // Meses com despesas atrasadas FORA do mês selecionado
+  const mesesAtrasadosDespesas = (() => {
+    const [anoSel2, mesSel2] = mesSelecionado.split('-').map(Number)
+    const hoje2 = new Date(); hoje2.setHours(0,0,0,0)
+    const mesesMap = {}
+    listDespesas.forEach(d => {
+      if (!d.data || !d.data.includes('/') || d.pago) return
+      const [dd, mm, yyyy] = d.data.split('/').map(Number)
+      if (yyyy === anoSel2 && mm === mesSel2) return // ignora o mês atual
+      const dataItem = new Date(yyyy, mm - 1, dd); dataItem.setHours(0,0,0,0)
+      if (dataItem < hoje2) {
+        const chave = `${String(mm).padStart(2,'0')}/${yyyy}`
+        mesesMap[chave] = true
+      }
+    })
+    return Object.keys(mesesMap).sort().map(chave => {
+      const [mm, yyyy] = chave.split('/')
+      return `${nomeMesesCompletos[parseInt(mm)-1]} ${yyyy}`
+    })
+  })()
 
   // ===== GERADOR DE CORES PARA GRÁFICOS =====
   // Função que distribui cores da paleta de forma cíclica
@@ -107,9 +184,35 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const mesesReceitas = agruparPorMes(listReceitas)
   const mesesDespesas = agruparPorMes(listDespesas)
 
+  // Agrupa parcelas dos cartões por mês (espalhando valorParcela por todos os meses ativos)
+  const mesesParcelas = {}
+  listCartoes.forEach(cartao => {
+    if (cartao.parcelamentos && Array.isArray(cartao.parcelamentos)) {
+      cartao.parcelamentos.forEach(parcelamento => {
+        if (parcelamento.dataInicio && parcelamento.dataInicio.includes('/')) {
+          const [, mesI, anoI] = parcelamento.dataInicio.split('/').map(Number)
+          for (let i = 0; i < parcelamento.numeroParcelas; i++) {
+            const d = new Date(anoI, mesI - 1 + i, 1)
+            const mes = String(d.getMonth() + 1).padStart(2, '0')
+            mesesParcelas[mes] = (mesesParcelas[mes] || 0) + parseFloat(parcelamento.valorParcela || 0)
+          }
+        }
+      })
+    }
+  })
+
+  // Combina despesas com parcelas dos cartões por mês
+  const mesesDespesasTotal = {}
+  Object.keys(mesesDespesas).forEach(mes => {
+    mesesDespesasTotal[mes] = (mesesDespesasTotal[mes] || 0) + mesesDespesas[mes]
+  })
+  Object.keys(mesesParcelas).forEach(mes => {
+    mesesDespesasTotal[mes] = (mesesDespesasTotal[mes] || 0) + mesesParcelas[mes]
+  })
+
   // Pega todos os meses únicos entre receitas e despesas, remove duplicatas com Set, e ordena
   // Exemplo: ["01", "02", "03", "04", ...] em ordem crescente
-  const todosMeses = [...new Set([...Object.keys(mesesReceitas), ...Object.keys(mesesDespesas)])].sort()
+  const todosMeses = [...new Set([...Object.keys(mesesReceitas), ...Object.keys(mesesDespesasTotal)])].sort()
   const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 
@@ -140,8 +243,8 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       return acc
     }, 0)
 
-  // Mesma lógica que acima, mas para despesas
-  const totalDespesasAcumulado = listDespesas
+  // Mesma lógica que acima, mas para despesas (incluindo parcelas dos cartões)
+  const totalDespesasAcumuladoDespesas = listDespesas
     .filter(d => {
       const partes = d.data.split('/')
       const mm = parseInt(partes[1])
@@ -155,6 +258,29 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       return acc
     }, 0)
 
+  // Soma parcelas pagas acumuladas até o mês selecionado (usando array de parcelas)
+  const totalDespesasAcumuladoParcelas = listCartoes.reduce((acc, cartao) => {
+    if (cartao.parcelamentos && Array.isArray(cartao.parcelamentos)) {
+      cartao.parcelamentos.forEach(parcelamento => {
+        if (!parcelamento.dataInicio || !parcelamento.dataInicio.includes('/')) return
+        const [, mesI, anoI] = parcelamento.dataInicio.split('/').map(Number)
+        ;(parcelamento.parcelas || []).forEach(p => {
+          if (p.pago !== true) return
+          // Calcula o mês/ano desta parcela individual
+          const d = new Date(anoI, mesI - 1 + (p.numero - 1), 1)
+          const mm = d.getMonth() + 1
+          const yyyy = d.getFullYear()
+          if (yyyy < anoSel || (yyyy === anoSel && mm <= mesSel)) {
+            acc += parseFloat(parcelamento.valorParcela || 0)
+          }
+        })
+      })
+    }
+    return acc
+  }, 0)
+
+  const totalDespesasAcumulado = totalDespesasAcumuladoDespesas + totalDespesasAcumuladoParcelas
+
   // Calcula o saldo acumulado subtraindo despesas de receitas
   const saldoAcumuladoAteMes = totalReceitasAcumulado - totalDespesasAcumulado
 
@@ -164,7 +290,7 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   const saldoAcumulado = todosMeses.reduce((acc, mes) => {
     const ultimo = acc.length > 0 ? acc[acc.length - 1] : 0 // Pega o último valor acumulado
     // Adiciona o saldo do mês atual ao saldo anterior
-    return [...acc, ultimo + (mesesReceitas[mes] || 0) - (mesesDespesas[mes] || 0)]
+    return [...acc, ultimo + (mesesReceitas[mes] || 0) - (mesesDespesasTotal[mes] || 0)]
   }, [])
 
   const linhaSaldoAcumulado = {
@@ -183,8 +309,17 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     ]
   }
 
-  // Ranking maiores despesas do mês
-  const topDespesas = [...despesasFiltradas]
+  // Ranking maiores despesas do mês (incluindo parcelas dos cartões)
+  const todasDespesasComParcelas = [
+    ...despesasFiltradas.map(d => ({ ...d, tipo: 'despesa' })),
+    ...parcelasFiltradas.map(p => ({
+      descricao: `${p.descricao} (Parcela ${p.numero}/${p.numeroParcelas})`,
+      valor: p.valorParcela,
+      tipo: 'parcela'
+    }))
+  ]
+
+  const topDespesas = [...todasDespesasComParcelas]
     .sort((a, b) => parseFloat(b.valor) - parseFloat(a.valor))
     .slice(0, 7)
 
@@ -238,12 +373,12 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
   }
 
   const doughnutDespesas = {
-    labels: despesasFiltradas.map(despesa => despesa.descricao),
+    labels: todasDespesasComParcelas.map(d => d.descricao),
     datasets: [
       {
-        data: despesasFiltradas.map(despesa => parseFloat(despesa.valor)),
-        backgroundColor: gerarCores(despesasFiltradas.length),
-        borderColor: gerarCores(despesasFiltradas.length),
+        data: todasDespesasComParcelas.map(d => parseFloat(d.valor)),
+        backgroundColor: gerarCores(todasDespesasComParcelas.length),
+        borderColor: gerarCores(todasDespesasComParcelas.length),
         borderWidth: 1
       }
     ]
@@ -261,7 +396,7 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
       },
       {
         label: 'Despesas',
-        data: todosMeses.map(mes => mesesDespesas[mes] || 0),
+        data: todosMeses.map(mes => mesesDespesasTotal[mes] || 0),
         backgroundColor: '#ff0000',
         borderColor: '#ff0000',
         borderWidth: 1
@@ -290,7 +425,7 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
     datasets: [
       {
         label: 'Despesas',
-        data: todosMeses.map(mes => mesesDespesas[mes] || 0),
+        data: todosMeses.map(mes => mesesDespesasTotal[mes] || 0),
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239,68,68,0.15)',
         pointBackgroundColor: '#ef4444',
@@ -328,55 +463,92 @@ const Dashboard = ({ listDespesas, listReceitas }) => {
           <div className='flex justify-between'>
             <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Receitas do mês</p>
 
-            {maturityDateReceitas(receitasFiltradas) && (
-              <div>
-                <svg
-                  onMouseEnter={() => setHoveredAlert("alertMaturityReceitas")}
-                  onMouseLeave={() => setHoveredAlert(null)}
-                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
-                {hoveredAlert === "alertMaturityReceitas" && (
-                  <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
-                    Existem Receitas Atrasadas
-                  </div>
-                )}
-              </div>)
-            }
-
+            <div className='flex items-center gap-2'>
+              {mesesAtrasadosReceitas.length > 0 && (
+                <div className='relative'>
+                  <svg
+                    onMouseEnter={() => setHoveredAlert('alertOutrosMesesReceitas')}
+                    onMouseLeave={() => setHoveredAlert(null)}
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="size-6 cursor-pointer"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                  {hoveredAlert === 'alertOutrosMesesReceitas' && (
+                    <div className='absolute z-10 right-0 top-8 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                      <p className='text-red-400 font-semibold mb-1'>Receitas atrasadas em:</p>
+                      {mesesAtrasadosReceitas.map(mes => <p key={mes}>{mes}</p>)}
+                    </div>
+                  )}
+                </div>
+              )}
+              {maturityDateReceitas(receitasFiltradas) && (
+                <div className='relative'>
+                  <svg
+                    onMouseEnter={() => setHoveredAlert("alertMaturityReceitas")}
+                    onMouseLeave={() => setHoveredAlert(null)}
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                  </svg>
+                  {hoveredAlert === "alertMaturityReceitas" && (
+                    <div className='absolute z-10 right-0 top-8 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                      Existem Receitas Atrasadas esse Mês
+                    </div>
+                  )}
+                </div>)
+              }
+            </div>
           </div>
-          <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitasRecebidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-3xl font-bold text-blue-400'>R$ {totalReceitasRecebidas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p className='text-xs text-white/30 mt-1'>{receitasFiltradas.filter(r => r.recebido).length} de {receitasFiltradas.length} recebido{receitasFiltradas.filter(r => r.recebido).length !== 1 ? 's' : ''}</p>
         </div>
         <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6'>
           <div className='flex justify-between'>
             <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Despesas do mês</p>
 
-            {maturityDateDespesas(despesasFiltradas) && (
-              <div>
-                <svg
-                  onMouseEnter={() => setHoveredAlert("alertMaturityDespesas")}
-                  onMouseLeave={() => setHoveredAlert(null)}
-                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
-                {hoveredAlert === "alertMaturityDespesas" && (
-                  <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
-                    Existem Despesas Atrasadas
-                  </div>
-                )}
-              </div>)
-            }
+            <div className='flex items-center gap-2'>
+              {mesesAtrasadosDespesas.length > 0 && (
+                <div className='relative'>
+                  <svg
+                    onMouseEnter={() => setHoveredAlert('alertOutrosMesesDespesas')}
+                    onMouseLeave={() => setHoveredAlert(null)}
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="red" className="size-6 cursor-pointer"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                  {hoveredAlert === 'alertOutrosMesesDespesas' && (
+                    <div className='absolute z-10 right-0 top-8 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                      <p className='text-red-400 font-semibold mb-1'>Despesas atrasadas em:</p>
+                      {mesesAtrasadosDespesas.map(mes => <p key={mes}>{mes}</p>)}
+                    </div>
+                  )}
+                </div>
+              )}
+              {maturityDateDespesas(despesasFiltradas) && (
+                <div className='relative'>
+                  <svg
+                    onMouseEnter={() => setHoveredAlert("alertMaturityDespesas")}
+                    onMouseLeave={() => setHoveredAlert(null)}
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                  </svg>
+                  {hoveredAlert === "alertMaturityDespesas" && (
+                    <div className='absolute z-10 right-0 top-8 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
+                      Existem Despesas esse mês
+                    </div>
+                  )}
+                </div>)
+              }
+            </div>
           </div>
-          <p className='text-3xl font-bold text-red-400'>R$ {totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className='text-3xl font-bold text-red-400'>R$ {totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p className='text-xs text-white/30 mt-1'>{despesasFiltradas.filter(d => d.pago).length} de {despesasFiltradas.length} pago{despesasFiltradas.filter(d => d.pago).length !== 1 ? 's' : ''}</p>
         </div>
         <div className={`rounded-2xl border backdrop-blur-sm shadow-xl p-6 ${saldoAcumuladoAteMes >= 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
           <p className='text-xs font-semibold text-white/40 uppercase tracking-widest mb-1'>Saldo acumulado</p>
           <p className={`text-3xl font-bold ${saldoAcumuladoAteMes >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {saldoAcumuladoAteMes >= 0 ? '+' : ''}R$ {saldoAcumuladoAteMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            {saldoAcumuladoAteMes >= 0 ? '+' : ''}R$ {saldoAcumuladoAteMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <p className='text-xs text-white/30 mt-1'>{saldoAcumuladoAteMes >= 0 ? 'Superávit' : 'Déficit'} acumulado até {new Date(anoSel, mesSel - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
         </div>

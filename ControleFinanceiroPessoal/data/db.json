@@ -102,9 +102,20 @@
       "descricao": "Aluguel",
       "valor": "1100",
       "data": "20/05/2026",
-      "pago": false,
+      "pago": true,
       "recorrencia": true,
-      "id": 1
+      "id": 1,
+      "parcelamentos": [
+        {
+          "descricao": "Carro",
+          "valorTotal": 15000,
+          "numeroParcelas": 3,
+          "valorParcela": 5000,
+          "dataInicio": "02/05/2026",
+          "parcelaAtual": 1,
+          "pago": true
+        }
+      ]
     },
     {
       "descricao": "Aluguel",
@@ -202,6 +213,112 @@
       "dataVencimento": "30/04/2026",
       "parcelamentos": [],
       "id": 1
+    },
+    {
+      "nome": "Itaú",
+      "limite": "12040",
+      "dataVencimento": "01/05/2026",
+      "parcelamentos": [
+        {
+          "descricao": "Fogao",
+          "valorTotal": 1669.7,
+          "numeroParcelas": 10,
+          "valorParcela": 166.97,
+          "dataInicio": "28/10/2025",
+          "parcelas": [
+            {
+              "numero": 1,
+              "pago": false
+            },
+            {
+              "numero": 2,
+              "pago": false
+            },
+            {
+              "numero": 3,
+              "pago": false
+            },
+            {
+              "numero": 4,
+              "pago": false
+            },
+            {
+              "numero": 5,
+              "pago": false
+            },
+            {
+              "numero": 6,
+              "pago": false
+            },
+            {
+              "numero": 7,
+              "pago": false
+            },
+            {
+              "numero": 8,
+              "pago": true
+            },
+            {
+              "numero": 9,
+              "pago": false
+            },
+            {
+              "numero": 10,
+              "pago": false
+            }
+          ]
+        },
+        {
+          "descricao": "Maquina de Lavar",
+          "valorTotal": 4199.9,
+          "numeroParcelas": 10,
+          "valorParcela": 419.98999999999995,
+          "dataInicio": "27/10/2025",
+          "parcelas": [
+            {
+              "numero": 1,
+              "pago": false
+            },
+            {
+              "numero": 2,
+              "pago": false
+            },
+            {
+              "numero": 3,
+              "pago": false
+            },
+            {
+              "numero": 4,
+              "pago": false
+            },
+            {
+              "numero": 5,
+              "pago": false
+            },
+            {
+              "numero": 6,
+              "pago": false
+            },
+            {
+              "numero": 7,
+              "pago": false
+            },
+            {
+              "numero": 8,
+              "pago": true
+            },
+            {
+              "numero": 9,
+              "pago": false
+            },
+            {
+              "numero": 10,
+              "pago": false
+            }
+          ]
+        }
+      ],
+      "id": 2
     }
   ]
 }

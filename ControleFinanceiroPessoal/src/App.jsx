@@ -16,7 +16,7 @@ function App() {
 
   const { listReceitas, httpConfig: receitasConfig, httpConfigBatch: receitasBatch, loading: loadingReceitas } = UseFetch(url + '/receitas')
   const { listDespesas, httpConfig: despesasConfig, httpConfigBatch: despesasBatch, loading: loadingDespesas } = UseFetch(url + '/despesas')
-  const { listCartoes, httpConfig: cartoesConfig, loading: loadingCartoes } = UseFetch(url + '/cartoes')
+  const { listCartoes, httpConfig: cartoesConfig, httpConfigBatch: cartoesBatch, loading: loadingCartoes } = UseFetch(url + '/cartoes')
 
   const handleSetPage = (newPage) => {
     setPage(newPage)
@@ -99,10 +99,10 @@ function App() {
           </div>
         </nav>
         <div className='w-full h-full flex-1'>
-            {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} />}
+            {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} listCartoes={listCartoes} />}
             {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} httpConfigBatch={receitasBatch} loading={loadingReceitas} />}
-            {page === "Despesas" && <Despesas listDespesas={listDespesas} httpConfig={despesasConfig} httpConfigBatch={despesasBatch} loading={loadingDespesas} />}
-            {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} loading={loadingCartoes} />}
+            {page === "Despesas" && <Despesas listCartoes={listCartoes} listDespesas={listDespesas} httpConfig={despesasConfig} httpConfigCartoes={cartoesConfig} httpConfigBatch={despesasBatch} loading={loadingDespesas} />}
+            {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} httpConfigBatch={cartoesBatch} httpConfigBatchDespesas={despesasBatch} loading={loadingCartoes} />}
 
         </div>
       </div>

@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 
 
-const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
+const Despesas = ({ listCartoes, listDespesas, httpConfig, httpConfigCartoes, httpConfigBatch, loading }) => {
 
   //Filtro de Mes
   const [mesAnoAtual, setMesAnoAtual] = useState(new Date())
@@ -15,6 +15,7 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
   const [pago, setPago] = useState(false)
   const [editing, setEditing] = useState(false)
   const [hoveredAlert, setHoveredAlert] = useState(null)
+  const [cartaoExpandido, setCartaoExpandido] = useState(null) // Rastreia qual cartão está com detalhes expandidos
 
   const inputDesc = useRef(null)
   const inputValor = useRef(null)
@@ -113,12 +114,49 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
     httpConfig(dataUpdateDespesa, 'PATCH')
   }
 
+  // Atualiza o status de pagamento de uma parcela individual dentro do parcelamento
+  function toggleStatusParcelamento(cartaoId, parcelamentoIndex, cartaoParcelamentos, numeroParcela, novoStatus) {
+    const parcelamentosAtualizados = cartaoParcelamentos.map((parcelamento, index) => {
+      if (index === parcelamentoIndex) {
+        const parcelasAtualizadas = (parcelamento.parcelas || []).map(p =>
+          p.numero === numeroParcela ? { ...p, pago: novoStatus } : p
+        );
+        return { ...parcelamento, parcelas: parcelasAtualizadas };
+      }
+      return parcelamento;
+    });
+    httpConfigCartoes(
+      { id: cartaoId, parcelamentos: parcelamentosAtualizados },
+      'PATCH'
+    );
+  }
+
   const handleDelete = async (id) => {
     const dataForDelete = {
       id: id
     }
 
     httpConfig(dataForDelete, 'DELETE')
+  }
+
+  // Verifica se um parcelamento está ativo no mês selecionado (mesAnoAtual)
+  // Retorna o número da parcela para aquele mês (1-based), ou null se não ativo
+  function getParcelaDoPeriodo(dataInicio, numeroParcelas) {
+    if (!dataInicio || !dataInicio.includes('/')) return null;
+
+    const [, mesI, anoI] = dataInicio.split('/').map(Number);
+    const mesAtual = mesAnoAtual.getMonth() + 1;
+    const anoAtual = mesAnoAtual.getFullYear();
+
+    // Diferença em meses entre o mês selecionado e o mês de início
+    const diffMonths = (anoAtual - anoI) * 12 + (mesAtual - mesI);
+    const numeroParcela = diffMonths + 1; // 1-based
+
+    // Só está ativo se o número da parcela está entre 1 e o total de parcelas
+    if (numeroParcela >= 1 && numeroParcela <= numeroParcelas) {
+      return numeroParcela;
+    }
+    return null;
   }
 
   function calculaTotalMes() {
@@ -304,13 +342,30 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                     <td colSpan={6} className='text-center py-10 text-white/30'>Nenhuma despesa cadastrada</td>
                   </tr>
                 )}
+
+                {/* ====== LISTAGEM DE DESPESAS ====== */}
                 {listDespesas.map((despesa, index) => (
+                  // ===== FILTRO: Só exibe despesas do mês/ano atual =====
+                  // Verifica 4 condições:
+                  // 1. despesa.data existe
+                  // 2. Contém "/" (formato válido DD/MM/YYYY)
+                  // 3. Mês da despesa === mês selecionado
+                  // 4. Ano da despesa === ano selecionado
                   despesa.data && despesa.data.includes('/') &&
-                    parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) && parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
-                    <tr key={index} className='hover:bg-white/5 transition-colors duration-150 group'>
+                    parseInt(despesa.data.split('/')[1]) === (mesAnoAtual.getMonth() + 1) &&
+                    parseInt(despesa.data.split('/')[2]) === mesAnoAtual.getFullYear() ? (
+
+                    /* ===== LINHA DA TABELA ===== */
+                    <tr key={`despesa-${despesa.id}`} className='hover:bg-white/5 transition-colors duration-150 group'>
+
+                      {/* COLUNA 1: Data com alerta de vencimento */}
                       <td className='px-6 py-4 text-white/50'>
                         <div className='flex gap-3 items-center'>
+                          {/* Exibe a data da despesa */}
                           {despesa.data}
+
+                          {/* ALERTA: Ícone de aviso se despesa está vencida e não paga */}
+                          {/* maturityDate() retorna true se a data é anterior a hoje */}
                           {maturityDate(despesa.data) && despesa.pago === false ? (
                             <div className='relative'>
                               <svg
@@ -318,8 +373,9 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                                 onMouseLeave={() => setHoveredAlert(null)}
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="yellow" className="size-6 cursor-pointer"
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                <path strokeLinecap='round' strokeLinejoin='round' d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                               </svg>
+                              {/* Tooltip que aparece ao passar o mouse */}
                               {hoveredAlert === ('alertMaturity-' + index) && (
                                 <div className='absolute z-10 left-8 top-0 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
                                   Despesa não paga
@@ -329,10 +385,19 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                           ) : null}
                         </div>
                       </td>
+
+                      {/* COLUNA 2: Descrição da Despesa */}
                       <td className='px-6 py-4 text-white font-medium'>{despesa.descricao}</td>
+
+                      {/* COLUNA 3: Valor formatado em moeda brasileira */}
+                      {/* parseFloat() converte string para número */}
+                      {/* toLocaleString() formata com 2 casas decimais */}
                       <td className='px-6 py-4 text-right text-red-400 font-semibold'>
                         R$ {parseFloat(despesa.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
+
+                      {/* COLUNA 4: Tipo de Recorrência */}
+                      {/* Exibe "Recorrente" (azul) ou "Única" (amarelo) */}
                       <td className='px-6 py-4 text-center'>
                         {despesa.recorrencia ? (
                           <span className='text-blue-400 font-semibold'>Recorrente</span>
@@ -340,6 +405,9 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                           <span className='text-yellow-400 font-semibold'>Única</span>
                         )}
                       </td>
+
+                      {/* COLUNA 5: Status de Pagamento */}
+                      {/* Exibe "Pago" (verde) ou "Pendente" (vermelho) */}
                       <td className='px-6 py-4 text-center'>
                         {despesa.pago ? (
                           <span className='text-green-400 font-semibold'>Pago</span>
@@ -347,9 +415,14 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                           <span className='text-red-400 font-semibold'>Pendente</span>
                         )}
                       </td>
+
+                      {/* COLUNA 6: Botões de Ações */}
                       <td className='px-6 py-4'>
                         <div className='flex gap-2 justify-center'>
+
+                          {/* BOTÕES DE PAGAMENTO - Muda conforme o status */}
                           {despesa.pago ? (
+                            // === SE JÁ ESTÁ PAGO: Mostra botão para marcar como PENDENTE ===
                             <div className='relative'>
                               <button
                                 onClick={() => editingByGrid(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, false)}
@@ -358,9 +431,10 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                                 className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                  <path strokeLinecap='round' strokeLinejoin='round' d="M6 18 18 6M6 6l12 12" />
                                 </svg>
                               </button>
+                              {/* Tooltip do botão */}
                               {hoveredAlert === index && (
                                 <div className='absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
                                   Marcar como pendente
@@ -368,6 +442,7 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                               )}
                             </div>
                           ) : (
+                            // === SE ESTÁ PENDENTE: Mostra botão para marcar como PAGO ===
                             <div className='relative'>
                               <button
                                 onClick={() => editingByGrid(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, true)}
@@ -376,9 +451,10 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                                 className='px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/20 text-green-400 hover:bg-green-500/40 border border-green-500/30 transition-all duration-200'
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                  <path strokeLinecap='round' strokeLinejoin='round' d="m4.5 12.75 6 6 9-13.5" />
                                 </svg>
                               </button>
+                              {/* Tooltip do botão */}
                               {hoveredAlert === index && (
                                 <div className='absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap border border-white/10'>
                                   Marcar como pago
@@ -386,6 +462,9 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                               )}
                             </div>
                           )}
+
+                          {/* BOTÃO EDITAR: Abre a despesa para edição */}
+                          {/* Carrega todos os dados da despesa nos campos do formulário */}
                           <button
                             type="button"
                             onClick={() => { setEditing(true); editItem(despesa.id, despesa.descricao, despesa.valor, despesa.data, despesa.recorrencia, despesa.pago) }}
@@ -393,6 +472,8 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                           >
                             Editar
                           </button>
+
+                          {/* BOTÃO DELETAR: Remove a despesa */}
                           <button
                             type="button"
                             onClick={() => handleDelete(despesa.id)}
@@ -405,6 +486,191 @@ const Despesas = ({ listDespesas, httpConfig, httpConfigBatch, loading }) => {
                     </tr>
                   ) : null
                 ))}
+
+                {/* ====== LISTAGEM DE CARTÕES COM PARCELAMENTOS DO MÊS ====== */}
+                {
+                  // PASSO 1: Itera sobre todos os cartões do array listCartoes
+                  // Para cada cartão, vamos processar seus parcelamentos
+                  listCartoes.map((cartao, index) => {
+
+                    // PASSO 2: Inicializa variável para acumular o total das parcelas do mês
+                    // Começamos com 0 e vamos somando os valores das parcelas do cartão
+                    let totalParcelasMes = 0;
+
+                    // PASSO 3: Verifica se o cartão possui parcelamentos
+                    // Se não houver parcelamentos, this.totalParcelasMes continuará 0
+                    if (cartao.parcelamentos) {
+
+                      // PASSO 4: Itera sobre cada parcelamento do cartão
+                      // forEach percorre todos os parcelamentos daquele cartão
+                      cartao.parcelamentos.forEach((parcela) => {
+
+                        // PASSO 5: Verifica se a parcela tem data válida
+                        // 1. dataInicio existe
+                        // 2. Contém "/" (formato DD/MM/YYYY)
+                        const numParcelaMes = getParcelaDoPeriodo(parcela.dataInicio, parcela.numeroParcelas);
+                        if (numParcelaMes !== null) {
+                          totalParcelasMes += parseFloat(parcela.valorParcela);
+                        }
+                      });
+                    }
+
+                    // PASSO 9: Valida se há parcelamentos no mês e verifica quantos estão pagos
+                    // Conta parcelas do mês selecionado e quantas estão marcadas como pagas
+                    let parcelasMesPagas = 0;
+                    let totalParcelasDoMes = 0;
+
+                    if (cartao.parcelamentos) {
+                      cartao.parcelamentos.forEach((parcela) => {
+                        const numParcelaMes = getParcelaDoPeriodo(parcela.dataInicio, parcela.numeroParcelas);
+                        if (numParcelaMes !== null) {
+                          totalParcelasDoMes++;
+                          const pagoStatus = parcela.parcelas?.find(p => p.numero === numParcelaMes)?.pago === true;
+                          if (pagoStatus) parcelasMesPagas++;
+                        }
+                      });
+                    }
+
+                    // Verifica se TODAS as parcelas do mês estão pagas
+                    // Só considera como "Pago" se: houver parcelas E todas estiverem pagas
+                    const todasParcelasDoMesPagas = totalParcelasDoMes > 0 && parcelasMesPagas === totalParcelasDoMes;
+
+                    // Só renderiza a linha do cartão se totalParcelasMes > 0
+                    // Isso evita exibir cartões sem parcelamentos neste mês
+                    if (totalParcelasMes > 0) {
+                      return (
+                        <React.Fragment key={`cartao-grupo-${cartao.id}`}>
+                          {/* PASSO 10: Renderiza a linha da tabela com o resumo do cartão */}
+                          <tr key={`cartao-${cartao.id}`} className='hover:bg-white/5 transition-colors duration-150 group'>
+
+                            {/* COLUNA 1: Data de Vencimento do Cartão */}
+                            {/* Exibe a data que o cartão vence (ex: 10/05/2026) */}
+                            <td className='px-6 py-4 text-white/50'>{cartao.dataVencimento}</td>
+
+                            {/* COLUNA 2: Nome do Cartão */}
+                            {/* Exibe o nome do cartão (ex: Nubank, Bradesco) */}
+                            <td className='px-6 py-4 text-white font-medium'>
+                              <div className='flex gap-3'>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                                </svg>
+
+                                {cartao.nome}
+                              </div>
+                            </td>
+
+                            {/* COLUNA 3: Total de Parcelamentos do Mês */}
+                            {/* Exibe a soma de todos os parcelamentos deste cartão neste mês */}
+                            {/* Usa toLocaleString() para formatar em moeda brasileira */}
+                            <td className='px-6 py-4 text-right text-red-400 font-semibold'>
+                              R$ {totalParcelasMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </td>
+
+                            {/* COLUNA 4: Tipo */}
+                            {/* Identifica que este é um item de parcelamento do cartão */}
+                            <td className='px-6 py-4 text-center'>
+                              <span className='text-blue-400 font-semibold'>Parcelado</span>
+                            </td>
+
+                            {/* COLUNA 5: Status */}
+                            {/* Se todas as parcelas do mês estão pagas, exibe "Pago" (verde), caso contrário "Pendente" (vermelho) */}
+                            <td className='px-6 py-4 text-center'>
+                              {todasParcelasDoMesPagas ? (
+                                <span className='text-green-400 font-semibold'>Pago</span>
+                              ) : (
+                                <span className='text-red-400 font-semibold'>Pendente</span>
+                              )}
+                            </td>
+
+                            {/* COLUNA 6: Ações */}
+                            {/* Botão para visualizar detalhes do cartão */}
+                            <td className='px-6 py-4'>
+                              <div className='flex gap-2 justify-center'>
+                                <button
+                                  onClick={() => setCartaoExpandido(cartaoExpandido === index ? null : index)}
+                                  className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'
+                                >
+                                  {cartaoExpandido === index ? 'Fechar' : 'Detalhes'}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* ===== LINHAS DE PARCELAMENTOS EXPANDIDAS ===== */}
+                          {/* Se o usuário clicou em "Detalhes", exibe os parcelamentos deste cartão */}
+                          {cartaoExpandido === index && cartao.parcelamentos && (
+                            cartao.parcelamentos.map((parcela, parcelaIndex) => {
+                              const numParcelaMes = getParcelaDoPeriodo(parcela.dataInicio, parcela.numeroParcelas);
+                              if (numParcelaMes !== null) {
+                                const pagoStatus = parcela.parcelas?.find(p => p.numero === numParcelaMes)?.pago === true;
+                                return (
+                                  <tr key={`parcela-${cartao.id}-${parcelaIndex}`} className='bg-blue-500/5 hover:bg-blue-500/10 border-l-4 border-blue-500'>
+                                    {/* COLUNA 1: Data da Parcela */}
+                                    <td className='px-6 py-3 text-white/50 text-sm'>{parcela.dataInicio}</td>
+
+                                    {/* COLUNA 2: Descrição com Identificação de Parcela */}
+                                    <td className='px-6 py-3 text-white/80 text-sm font-medium'>
+                                      └─ {parcela.descricao} (Parcela {numParcelaMes}/{parcela.numeroParcelas})
+                                    </td>
+
+                                    {/* COLUNA 3: Valor Individual da Parcela */}
+                                    <td className='px-6 py-3 text-right text-blue-400 text-sm font-semibold'>
+                                      R$ {parseFloat(parcela.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </td>
+
+                                    {/* COLUNA 4: Identificação como Subparcela */}
+                                    <td className='px-6 py-3 text-center text-xs'>
+                                      <span className='text-blue-300'>Subparcela</span>
+                                    </td>
+
+                                    {/* COLUNA 5: Status de Pagamento da Parcela */}
+                                    <td className='px-6 py-3 text-center'>
+                                      {pagoStatus ? (
+                                        <span className='text-green-400 font-semibold text-sm'>Pago</span>
+                                      ) : (
+                                        <span className='text-red-400 font-semibold text-sm'>Pendente</span>
+                                      )}
+                                    </td>
+
+                                    {/* COLUNA 6: Botões de Ações para Pagamento */}
+                                    <td className='px-6 py-3'>
+                                      <div className='flex gap-2 justify-center'>
+                                        {pagoStatus ? (
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleStatusParcelamento(cartao.id, parcelaIndex, cartao.parcelamentos, numParcelaMes, false)}
+                                            className='px-2 py-1 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                              <path strokeLinecap='round' strokeLinejoin='round' d="M6 18 18 6M6 6l12 12" />
+                                            </svg>
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleStatusParcelamento(cartao.id, parcelaIndex, cartao.parcelamentos, numParcelaMes, true)}
+                                            className='px-2 py-1 rounded-lg text-xs font-medium bg-green-500/20 text-green-400 hover:bg-green-500/40 border border-green-500/30 transition-all duration-200'
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                              <path strokeLinecap='round' strokeLinejoin='round' d="m4.5 12.75 6 6 9-13.5" />
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              }
+                              return null;
+                            })
+                          )}
+                        </React.Fragment>
+                      );
+                    }
+                    return null;
+                  })
+                }
+
               </>
             )}
           </tbody>

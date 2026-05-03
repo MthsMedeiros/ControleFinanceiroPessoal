@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import ModalParcelamentos from './ModalParcelamentos'
 
 
-const Cartoes = ({ listCartoes, httpConfig, loading }) => {
+const Cartoes = ({ listCartoes, httpConfig, loading, httpConfigBatch, httpConfigBatchDespesas }) => {
     const [idCartao, setIdCartao] = useState(null)
     const [nomeCartao, setNomeCartao] = useState('')
     const [limiteCartao, setLimiteCartao] = useState('')
@@ -9,6 +10,10 @@ const Cartoes = ({ listCartoes, httpConfig, loading }) => {
     const [parcelaCartao, setParcelaCartao] = useState([])
 
     const [editing, setEditing] = useState(false)
+    const [isModalPParcelamentoOpen, setIsModalParcelamentoOpen] = useState(false)
+    const [cartaoSelecionado, setCartaoSelecionado] = useState(null)
+    const [cartaoExpandido, setCartaoExpandido] = useState(null)
+    const [modoEdicaoParcelamento, setModoEdicaoParcelamento] = useState(false)
 
     function clearFields() {
         setNomeCartao('')
@@ -27,6 +32,26 @@ const Cartoes = ({ listCartoes, httpConfig, loading }) => {
 
     const handleDelete = (id) => {
         httpConfig({ id }, 'DELETE')
+    }
+
+    const handleEditarParcelamentos = (cartao) => {
+        // Abre o modal em modo de EDIÇÃO para editar todos os parcelamentos do cartão
+        setCartaoSelecionado(cartao)
+        setModoEdicaoParcelamento(true)
+        setIsModalParcelamentoOpen(true)
+    }
+
+    const handleExcluirParcelamentos = (cartaoId, parcelaIndex) => {
+        // Exclui APENAS o parcelamento no índice especificado
+        const cartao = listCartoes.find(c => c.id === cartaoId)
+        if (cartao) {
+            const parcelamentosAtualizados = cartao.parcelamentos.filter((_, index) => index !== parcelaIndex)
+            const cartaoAtualizado = {
+                id: cartaoId,
+                parcelamentos: parcelamentosAtualizados
+            }
+            httpConfig(cartaoAtualizado, 'PATCH')
+        }
     }
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -61,6 +86,20 @@ const Cartoes = ({ listCartoes, httpConfig, loading }) => {
 
     return (
         <div className='max-w-5xl wfull mx-auto mt-10 flex px-6 gap-8 flex-col items-center justify-center'>
+            {isModalPParcelamentoOpen && cartaoSelecionado && (
+              <ModalParcelamentos
+                cartao={cartaoSelecionado}
+                onClose={() => { 
+                  setIsModalParcelamentoOpen(false)
+                  setCartaoSelecionado(null)
+                  setModoEdicaoParcelamento(false)
+                }}
+                httpConfig={httpConfig}
+                modoEdicao={modoEdicaoParcelamento}
+               
+              />
+            )}
+
             {/*Div de título*/}
             <div className='w-full flex items-center gap-3 '>
                 <div>
@@ -172,15 +211,55 @@ const Cartoes = ({ listCartoes, httpConfig, loading }) => {
                                 </td>
                             </tr>
                         ) : (
+                            // ====== LISTAGEM DE CARTÕES ======
+                            // Mapeia o array listCartoes e cria uma linha da tabela para cada cartão
                             listCartoes.map((cartao, index) => (
-                                <>
-
-                                    <tr className='text-center border-b border-white/10 hover:bg-white/5' key={index}>
+                                // React.Fragment evita criar uma div extra no DOM, mantendo apenas as linhas da tabela
+                                <React.Fragment key={`cartao-${cartao.id}`}>
+                                    {/* ===== LINHA DA TABELA ===== */}
+                                    <tr className='text-center border-b border-white/10 hover:bg-white/5'>
+                                        
+                                        {/* COLUNA 1: Nome do Cartão */}
                                         <td className='text-lg text-left px-6 py-4 text-white/80'>{cartao.nome}</td>
+                                        
+                                        {/* COLUNA 2: Limite do Cartão */}
+                                        {/* parseFloat() converte string para número */}
+                                        {/* toLocaleString() formata para moeda brasileira (R$ 5.000,00) */}
                                         <td className='text-left px-6 py-4 font-semibold'>{parseFloat(cartao.limite).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                                        
+                                        {/* COLUNA 3: Data de Vencimento */}
                                         <td className='text-center px-6 py-4 text-white/50'>{cartao.dataVencimento}</td>
+                                        
+                                        {/* COLUNA 4: Ações (Botões) */}
                                         <td className='flex gap-2 items-center justify-center p-3'>
-                                            <button title='Incluir Parcelamento' className='px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/20 text-green-400 hover:bg-green-500/40 border border-green-500/30 transition-all duration-200'>+</button>
+                                            
+                                            {/* BOTÃO 1: Detalhes (Ver parcelamentos) */}
+                                            <button 
+                                                onClick={() => setCartaoExpandido(cartaoExpandido === cartao.id ? null : cartao.id)}
+                                                title='Ver Detalhes dos Parcelamentos' 
+                                                className='px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 border border-purple-500/30 transition-all duration-200'
+                                            >
+                                                {cartaoExpandido === cartao.id ? 'Fechar' : 'Detalhes'}
+                                            </button>
+                                            
+                                            {/* BOTÃO 2: Adicionar Parcelamento */}
+                                            {/* Quando clicado:
+                                                1. Define o cartão clicado como cartaoSelecionado
+                                                2. Abre o modal de parcelamentos
+                                            */}
+                                            <button 
+                                                onClick={() => { setCartaoSelecionado(cartao); setIsModalParcelamentoOpen(true) }} 
+                                                title='Incluir Parcelamento' 
+                                                className='px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/20 text-green-400 hover:bg-green-500/40 border border-green-500/30 transition-all duration-200'
+                                            >
+                                                +
+                                            </button>
+                                            
+                                            {/* BOTÃO 3: Editar Cartão */}
+                                            {/* Quando clicado:
+                                                1. Ativa o modo de edição (setEditing(true))
+                                                2. Carrega os dados do cartão nos campos do formulário
+                                            */}
                                             <button
                                                 type="button"
                                                 onClick={() => { setEditing(true); editItem(cartao.id, cartao.nome, cartao.limite, cartao.dataVencimento) }}
@@ -197,8 +276,51 @@ const Cartoes = ({ listCartoes, httpConfig, loading }) => {
                                             </button>
                                         </td>
                                     </tr>
-                                    {/*Expandir linhas da tabela para mostrar detalhes do cartão*/}
-                                </>
+
+                                    {/* ===== LINHAS EXPANDIDAS - DETALHES DOS PARCELAMENTOS ===== */}
+                                    {cartaoExpandido === cartao.id && cartao.parcelamentos && cartao.parcelamentos.length > 0 && (
+                                      cartao.parcelamentos.map((parcela, parcelaIndex) => (
+                                        <tr key={`parcela-${cartao.id}-${parcelaIndex}`} className='bg-purple-500/5 hover:bg-purple-500/10 border-l-4 border-purple-500'>
+                                          <td colSpan="4" className='p-6'>
+                                            <div className='flex items-center justify-between gap-4 bg-purple-500/10 p-4 rounded-lg'>
+                                              <div className='flex-1'>
+                                                <p className='font-semibold text-white'>{parcela.descricao}</p>
+                                                <p className='text-xs text-white/50 mt-1'>
+                                                  Total: {parcela.numeroParcelas} parcelas | 
+                                                  Valor: R$ {parseFloat(parcela.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | 
+                                                  Início: {parcela.dataInicio} | 
+                                                  Pagas: <span className='text-green-400'>{(parcela.parcelas || []).filter(p => p.pago).length}</span>/{parcela.numeroParcelas}
+                                                </p>
+                                              </div>
+                                              <div className='flex gap-2'>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleEditarParcelamentos(cartao)}
+                                                  className='px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 border border-blue-500/30 transition-all duration-200'
+                                                >
+                                                  Editar Tudo
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleExcluirParcelamentos(cartao.id, parcelaIndex)}
+                                                  className='px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/40 border border-red-500/30 transition-all duration-200'
+                                                >
+                                                  Excluir
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    )}
+                                    {cartaoExpandido === cartao.id && (!cartao.parcelamentos || cartao.parcelamentos.length === 0) && (
+                                      <tr className='bg-purple-500/5 border-l-4 border-purple-500'>
+                                        <td colSpan="4" className='p-6 text-center text-white/50'>
+                                          Nenhum parcelamento cadastrado
+                                        </td>
+                                      </tr>
+                                    )}
+                                </React.Fragment>
                             ))
                         )}
 
