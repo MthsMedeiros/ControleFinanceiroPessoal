@@ -170,6 +170,26 @@ export const UseFetch = (url) => {
         }
     }
 
-    return {listReceitas, listDespesas,listCartoes, httpConfig, httpConfigBatch, loading};
+    const httpConfigBatchUpdate = async (items) => {
+        setLoading(true)
+        try {
+            for (const item of items) {
+                const { id, ...rest } = item
+                const response = await fetch(`${url}/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rest)
+                })
+                if (!response.ok) console.error(`Erro ao atualizar item ${id}: ${response.status}`)
+            }
+        } catch(error) {
+            console.error('Erro ao atualizar dados em lote:', error)
+        } finally {
+            setCallFetchData(prev => prev + 1)
+            setLoading(false)
+        }
+    }
+
+    return {listReceitas, listDespesas,listCartoes, httpConfig, httpConfigBatch, httpConfigBatchUpdate, loading};
 };
 

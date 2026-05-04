@@ -17,6 +17,7 @@ const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
   const refMes = useRef(null)
 
   const [hoveredAlert, setHoveredAlert] = useState(null)
+  const [hoveredExpenseIndex, setHoveredExpenseIndex] = useState(null)
 
 
 
@@ -343,7 +344,7 @@ const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
     plugins: { legend: { display: false } },
     scales: {
       x: { ticks: { color: 'rgba(255,255,255,0.5)', callback: v => `R$ ${v.toLocaleString('pt-BR')}` }, grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      y: { ticks: { display: false }, grid: { display: false } }
     }
   }
 
@@ -358,6 +359,24 @@ const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
         borderWidth: 1
       }
     ]
+  }
+
+  const doughnutOptions = {
+    animation: { duration: 1000 },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            return `${label}: R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        }
+      }
+    }
   }
 
   const doughnutReceitas = {
@@ -619,22 +638,22 @@ const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
       </div>
       {/* Linha 1: Pie + Doughnut Receitas + Doughnut Despesas */}
       <div className='grid grid-cols-3 gap-6'>
-        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-[480px]'>
           <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Receita x Despesas</h2>
           <div className='flex-1 w-full'>
             <Pie key={`pie-${mountId}`} data={receitasXDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
           </div>
         </div>
-        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-[480px]'>
           <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Receitas</h2>
           <div className='flex-1 w-full'>
-            <Doughnut key={`doughnut-r-${mountId}`} data={doughnutReceitas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+            <Doughnut key={`doughnut-r-${mountId}`} data={doughnutReceitas} options={doughnutOptions} />
           </div>
         </div>
-        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-96'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col items-center h-[480px]'>
           <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Despesas</h2>
           <div className='flex-1 w-full'>
-            <Doughnut key={`doughnut-d-${mountId}`} data={doughnutDespesas} options={{ animation: { duration: 1000 }, responsive: true, maintainAspectRatio: false }} />
+            <Doughnut key={`doughnut-d-${mountId}`} data={doughnutDespesas} options={doughnutOptions} />
           </div>
         </div>
       </div>
@@ -670,12 +689,49 @@ const Dashboard = ({ listDespesas, listReceitas, listCartoes = [] }) => {
             <Line key={`line-saldo-${mountId}`} data={linhaSaldoAcumulado} options={lineOptions} />
           </div>
         </div>
-        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-80'>
+        <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl p-6 flex flex-col h-96'>
           <h2 className='text-base font-semibold text-white/60 uppercase tracking-widest mb-4'>Maiores Despesas do Mês</h2>
-          <div className='flex-1 w-full'>
+          <div className='flex-1 w-full flex flex-col'>
             {topDespesas.length === 0
               ? <p className='text-white/30 text-sm text-center mt-10'>Nenhuma despesa no período</p>
-              : <Bar key={`bar-top-${mountId}`} data={barrasTopDespesas} options={barrasHorizontaisOptions} />
+              : (
+                <div className='flex gap-4 h-full'>
+                  <div className='w-48 overflow-hidden space-y-1'>
+                    {topDespesas.map((despesa, idx) => {
+                      const isImported = despesa.descricao.startsWith('[OFX]');
+                      return (
+                        <div
+                          key={idx}
+                          className='h-9 flex items-center px-3 rounded-lg cursor-default border border-white/10 hover:border-blue-400/50 transition-colors duration-300 overflow-hidden gap-2'
+                          style={{ backgroundColor: `${gerarCores(topDespesas.length)[idx]}20` }}
+                          onMouseEnter={() => setHoveredExpenseIndex(idx)}
+                          onMouseLeave={() => setHoveredExpenseIndex(null)}
+                        >
+                          {isImported && (
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 flex-shrink-0 text-red-400">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                            </svg>
+                          )}
+                          <div className='flex-1 whitespace-nowrap transition-all duration-500' style={hoveredExpenseIndex === idx ? {
+                            animation: 'scroll-text 4s linear infinite'
+                          } : {}}>
+                            <style>{`
+                              @keyframes scroll-text {
+                                0% { transform: translateX(100%); }
+                                100% { transform: translateX(-100%); }
+                              }
+                            `}</style>
+                            <span className='text-xs text-white/70 font-medium inline-block'>{despesa.descricao}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className='flex-1'>
+                    <Bar key={`bar-top-${mountId}`} data={barrasTopDespesas} options={{ ...barrasHorizontaisOptions, plugins: { ...barrasHorizontaisOptions.plugins, legend: { display: false } } }} />
+                  </div>
+                </div>
+              )
             }
           </div>
         </div>

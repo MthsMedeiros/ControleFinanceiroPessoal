@@ -4,6 +4,8 @@ import Dashboard from './componets/Dashboard'
 import Receitas from './componets/Receitas'
 import Despesas from './componets/Despesas'
 import Cartoes from './componets/Cartoes'
+import ImportarOFX from './componets/ImportarOFX'
+
 import { UseFetch } from './hooks/UseFetch'
 
 
@@ -14,8 +16,8 @@ function App() {
   let [isOpen, setIsOpen] = useState(false)
   let [page, setPage] = useState('Dashboard')
 
-  const { listReceitas, httpConfig: receitasConfig, httpConfigBatch: receitasBatch, loading: loadingReceitas } = UseFetch(url + '/receitas')
-  const { listDespesas, httpConfig: despesasConfig, httpConfigBatch: despesasBatch, loading: loadingDespesas } = UseFetch(url + '/despesas')
+  const { listReceitas, httpConfig: receitasConfig, httpConfigBatch: receitasBatch, httpConfigBatchUpdate: receitasBatchUpdate, loading: loadingReceitas } = UseFetch(url + '/receitas')
+  const { listDespesas, httpConfig: despesasConfig, httpConfigBatch: despesasBatch, httpConfigBatchUpdate: despesasBatchUpdate, loading: loadingDespesas } = UseFetch(url + '/despesas')
   const { listCartoes, httpConfig: cartoesConfig, httpConfigBatch: cartoesBatch, loading: loadingCartoes } = UseFetch(url + '/cartoes')
 
   const handleSetPage = (newPage) => {
@@ -87,6 +89,11 @@ function App() {
                   </div>
                   <ul className='p-2'>
                     <li>
+                      <button onClick={() => setPage("Importar OFX")}  className='w-full text-left px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all duration-150'>
+                        Importar Arquivo OFX
+                      </button>
+                    </li>
+                    <li>
                       <button className='w-full text-left px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all duration-150'>
                         Sair
                       </button>
@@ -98,12 +105,12 @@ function App() {
 
           </div>
         </nav>
-        <div className='w-full h-full flex-1'>
+        <div className='w-full h-full flex-1 overflow-y-auto'>
             {page === "Dashboard" && <Dashboard key={dashboardRenderCount} listDespesas={listDespesas} listReceitas={listReceitas} listCartoes={listCartoes} />}
-            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} httpConfigBatch={receitasBatch} loading={loadingReceitas} />}
-            {page === "Despesas" && <Despesas listCartoes={listCartoes} listDespesas={listDespesas} httpConfig={despesasConfig} httpConfigCartoes={cartoesConfig} httpConfigBatch={despesasBatch} loading={loadingDespesas} />}
+            {page === "Receitas" && <Receitas listReceitas={listReceitas} httpConfig={receitasConfig} httpConfigBatch={receitasBatch} httpConfigBatchUpdate={receitasBatchUpdate} loading={loadingReceitas} />}
+            {page === "Despesas" && <Despesas listCartoes={listCartoes} listDespesas={listDespesas} httpConfig={despesasConfig} httpConfigCartoes={cartoesConfig} httpConfigBatch={despesasBatch} httpConfigBatchUpdate={despesasBatchUpdate} loading={loadingDespesas} />}
             {page === "Cartões" && <Cartoes listCartoes={listCartoes} httpConfig={cartoesConfig} httpConfigBatch={cartoesBatch} httpConfigBatchDespesas={despesasBatch} loading={loadingCartoes} />}
-
+            {page === "Importar OFX" && <ImportarOFX listReceitas={listReceitas} listDespesas={listDespesas} httpConfigReceitas={receitasConfig} httpConfigDespesas={despesasConfig} httpConfigBatchReceitas={receitasBatch} httpConfigBatchDespesas={despesasBatch} />}
         </div>
       </div>
     </>

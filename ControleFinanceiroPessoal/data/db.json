@@ -1,234 +1,776 @@
 {
   "receitas": [
     {
-      "descricao": "Salario",
-      "valor": "5400",
+      "descricao": "[OFX] Transferência Recebida - MATHEUS ARAUJO DE MEDEIROS - •••.625.254-•• - ITAÚ UNIBANCO S.A. (0341) Agência: 9179 Conta: 34048-5",
+      "valor": "5396.89",
       "data": "28/04/2026",
+      "recorrencia": false,
       "recebido": true,
-      "recorrencia": true,
       "id": 1
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/05/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - DELANE RUSVERTE BARBOSA DE MEDEIROS - •••.268.904-•• - BCO BRADESCO S.A. (0237) Agência: 1104 Conta: 31105-7",
+      "valor": "700.00",
+      "data": "02/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 2
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/06/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - DELANE RUSVERTE BARBOSA DE MEDEIROS - •••.268.904-•• - BCO BRADESCO S.A. (0237) Agência: 1104 Conta: 31105-7",
+      "valor": "168.00",
+      "data": "02/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 3
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/07/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - Alana Carla Dantas Ferreira Belmont - •••.994.644-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 1181642348-7",
+      "valor": "11.91",
+      "data": "04/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 4
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/08/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - Darlison da Silva Osorio - •••.995.662-•• - NEON PAGAMENTOS S.A. IP (0536) Agência: 655 Conta: 14492176-6",
+      "valor": "250.00",
+      "data": "13/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 5
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/09/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "200.00",
+      "data": "13/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 6
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/10/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "200.00",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 7
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/11/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência Recebida - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "10.00",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 8
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/12/2026",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Resgate RDB",
+      "valor": "3109.06",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 9
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/01/2027",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Resgate RDB",
+      "valor": "110.00",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 10
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/02/2027",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência recebida pelo Pix - Darlison da Silva Osorio - •••.995.662-•• - NEON PAGAMENTOS S.A. IP (0536) Agência: 655 Conta: 14492176-6",
+      "valor": "140.00",
+      "data": "18/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 11
     },
     {
-      "descricao": "Salario",
-      "valor": "5400",
-      "data": "28/03/2027",
-      "recebido": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência Recebida - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "7.00",
+      "data": "19/04/2026",
+      "recorrencia": false,
+      "recebido": true,
       "id": 12
+    },
+    {
+      "descricao": "[OFX] Resgate RDB",
+      "valor": "293.11",
+      "data": "25/04/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 13
+    },
+    {
+      "descricao": "[OFX] Transferência Recebida - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "29.79",
+      "data": "03/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 14
+    },
+    {
+      "descricao": "[OFX] Transferência recebida pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "200.00",
+      "data": "13/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 15
+    },
+    {
+      "descricao": "[OFX] Transferência recebida pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "200.00",
+      "data": "14/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 16
+    },
+    {
+      "descricao": "[OFX] Valor adicionado na conta por cartão de crédito - Valor adicionado para Pix no Crédito",
+      "valor": "132.24",
+      "data": "17/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 17
+    },
+    {
+      "descricao": "[OFX] Transferência recebida pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "136.00",
+      "data": "19/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 18
+    },
+    {
+      "descricao": "[OFX] Transferência Recebida - MATHEUS ARAUJO DE MEDEIROS - •••.625.254-•• - ITAÚ UNIBANCO S.A. (0341) Agência: 9179 Conta: 34048-5",
+      "valor": "5473.67",
+      "data": "27/03/2026",
+      "recorrencia": false,
+      "recebido": true,
+      "id": 19
     }
   ],
   "despesas": [
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/05/2026",
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "10.00",
+      "data": "30/04/2026",
+      "recorrencia": false,
       "pago": true,
-      "recorrencia": true,
-      "id": 1,
-      "parcelamentos": [
-        {
-          "descricao": "Carro",
-          "valorTotal": 15000,
-          "numeroParcelas": 3,
-          "valorParcela": 5000,
-          "dataInicio": "02/05/2026",
-          "parcelaAtual": 1,
-          "pago": true
-        }
-      ]
+      "id": 1
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/06/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - NETFLIX.COM",
+      "valor": "20.90",
+      "data": "01/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 2
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/07/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "18.50",
+      "data": "01/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 3
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/08/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência enviada pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "50.00",
+      "data": "01/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 4
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/09/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - MariaAndradeDa",
+      "valor": "14.83",
+      "data": "02/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 5
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/10/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência enviada pelo Pix - Joao Victor Barbosa Hidalgo - •••.739.299-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 3186243901-3",
+      "valor": "80.00",
+      "data": "02/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 6
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/11/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - MERCADO EXTRA-2400",
+      "valor": "49.26",
+      "data": "03/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 7
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/12/2026",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - SORELENA GUEDES DE SOU",
+      "valor": "20.50",
+      "data": "04/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 8
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/01/2027",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "9.98",
+      "data": "04/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 9
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/02/2027",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Plano Nucel - Conta",
+      "valor": "45.00",
+      "data": "06/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 10
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/03/2027",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Transferência enviada pelo Pix - ENERGISA - 09.095.183/0001-40 - ACESSO SOLUÇÕES DE PAGAMENTO S.A. - INSTITUIÇÃO DE PAGAMENTO (0332) Agência: 1 Conta: 1164597-0",
+      "valor": "506.55",
+      "data": "07/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 11
     },
     {
-      "descricao": "Aluguel",
-      "valor": "1100",
-      "data": "20/04/2027",
-      "pago": false,
-      "recorrencia": true,
+      "descricao": "[OFX] Compra no débito - ASSAI ATACADISTA LJ77",
+      "valor": "358.31",
+      "data": "07/04/2026",
+      "recorrencia": false,
+      "pago": true,
       "id": 12
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "11.20",
+      "data": "14/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 13
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Rafael Motta Guedes Pereira Maximo - •••.903.364-•• - BCO C6 S.A. (0336) Agência: 1 Conta: 3431962-0",
+      "valor": "1100.00",
+      "data": "14/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 14
+    },
+    {
+      "descricao": "[OFX] Compra no débito - GILDO DA PIPOCA",
+      "valor": "5.50",
+      "data": "14/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 15
+    },
+    {
+      "descricao": "[OFX] Compra no débito - ASSAI ATACADISTA LJ77",
+      "valor": "325.76",
+      "data": "14/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 16
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - DENILSON VITAL COSTA - •••.066.724-•• - ITAÚ UNIBANCO S.A. (0341) Agência: 8757 Conta: 41327-6",
+      "valor": "100.00",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 17
+    },
+    {
+      "descricao": "[OFX] Compra no débito - Redepharma",
+      "valor": "10.51",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 18
+    },
+    {
+      "descricao": "[OFX] Compra no débito - MP *CUPIMGRILL",
+      "valor": "35.00",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 19
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - Stefani de Sousa Barbosa Farias",
+      "valor": "897.00",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 20
+    },
+    {
+      "descricao": "[OFX] Compra no débito - ATACADAO 688 AS",
+      "valor": "57.57",
+      "data": "15/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 21
+    },
+    {
+      "descricao": "[OFX] Pagamento de fatura",
+      "valor": "1180.69",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 22
+    },
+    {
+      "descricao": "[OFX] Pagamento de fatura",
+      "valor": "3109.06",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 23
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - CARLOS HENRIQUE DA CONCEICAO - •••.834.884-•• - BCO SANTANDER (BRASIL) S.A. (0033) Agência: 3029 Conta: 2005905-3",
+      "valor": "110.00",
+      "data": "16/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 24
+    },
+    {
+      "descricao": "[OFX] Compra no débito - SORELENA GUEDES DE SOU",
+      "valor": "39.00",
+      "data": "18/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 25
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "13.97",
+      "data": "19/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 26
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "26.00",
+      "data": "19/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 27
+    },
+    {
+      "descricao": "[OFX] Compra no débito - LANCHES 083 LANCHONETE",
+      "valor": "57.96",
+      "data": "20/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 28
+    },
+    {
+      "descricao": "[OFX] Compra no débito - SUPERMERCADO COLIBRIS",
+      "valor": "32.90",
+      "data": "22/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 29
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - MAGALUPAY - 13.884.775/0001-19 - MAGALUPAY (0396) Agência: 1 Conta: 39588514-6",
+      "valor": "293.11",
+      "data": "25/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 30
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "7.87",
+      "data": "27/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 31
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "5.00",
+      "data": "28/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 32
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "7.90",
+      "data": "28/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 33
+    },
+    {
+      "descricao": "[OFX] Pagamento de fatura",
+      "valor": "2368.35",
+      "data": "29/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 34
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - ITAU UNIBANCO HOLDING S.A.",
+      "valor": "587.96",
+      "data": "29/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 35
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - 83TELECOM SERVICOS LTDA",
+      "valor": "99.99",
+      "data": "29/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 36
+    },
+    {
+      "descricao": "[OFX] Compra no débito - NETFLIX.COM",
+      "valor": "20.90",
+      "data": "30/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 37
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Matheus Araujo de Medeiros - •••.625.254-•• - BCO DO BRASIL S.A. (0001) Agência: 3502 Conta: 34357-9",
+      "valor": "319.00",
+      "data": "30/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 38
+    },
+    {
+      "descricao": "[OFX] Compra no débito via NuPay - iFood",
+      "valor": "80.99",
+      "data": "30/04/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 39
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "19.20",
+      "data": "01/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 40
+    },
+    {
+      "descricao": "[OFX] Compra no débito - Uber UBER *TRIP HELP.U",
+      "valor": "12.80",
+      "data": "02/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 41
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - DETRAN PB ARRECADACAO",
+      "valor": "173.30",
+      "data": "03/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 42
+    },
+    {
+      "descricao": "[OFX] Compra no débito - ASSAI ATACADISTA LJ77",
+      "valor": "29.79",
+      "data": "03/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 43
+    },
+    {
+      "descricao": "[OFX] Compra no débito - Uber UBER *TRIP HELP.U",
+      "valor": "6.95",
+      "data": "03/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 44
+    },
+    {
+      "descricao": "[OFX] Compra no débito - Uber UBER *TRIP HELP.U",
+      "valor": "12.93",
+      "data": "05/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 45
+    },
+    {
+      "descricao": "[OFX] Compra no débito - REDEPHARMA",
+      "valor": "83.47",
+      "data": "05/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 46
+    },
+    {
+      "descricao": "[OFX] Plano Nucel - Conta",
+      "valor": "45.00",
+      "data": "06/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 47
+    },
+    {
+      "descricao": "[OFX] Compra no débito - ALAIN ESFIHARIA",
+      "valor": "61.09",
+      "data": "06/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 48
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "29.00",
+      "data": "06/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 49
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Leticia Mendes da Silva - •••.509.784-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 23469786-5",
+      "valor": "20.00",
+      "data": "06/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 50
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "25.00",
+      "data": "08/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 51
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - ENERGISA - 09.095.183/0001-40 - ACESSO SOLUÇÕES DE PAGAMENTO S.A. - INSTITUIÇÃO DE PAGAMENTO (0332) Agência: 1 Conta: 1164597-0",
+      "valor": "399.17",
+      "data": "08/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 52
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "17.00",
+      "data": "09/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 53
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "17.70",
+      "data": "11/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 54
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "35.00",
+      "data": "11/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 55
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "5.00",
+      "data": "12/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 56
+    },
+    {
+      "descricao": "[OFX] Compra no débito - POSTO OPCAO",
+      "valor": "52.01",
+      "data": "12/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 57
+    },
+    {
+      "descricao": "[OFX] Compra no débito - ASSAI ATACADISTA LJ77",
+      "valor": "16.40",
+      "data": "12/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 58
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Louise Torres Soares Boulitreau - •••.704.134-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 88315247-7",
+      "valor": "80.54",
+      "data": "13/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 59
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Aline Barbosa Dias de Souza - •••.352.794-•• - NU PAGAMENTOS - IP (0260) Agência: 1 Conta: 5338644-6",
+      "valor": "4.00",
+      "data": "13/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 60
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - PAGUEVELOZ - 03.816.413/0001-37 - PAGUEVELOZ IP LTDA. (0517) Agência: 1 Conta: 8354425-2",
+      "valor": "27.14",
+      "data": "13/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 61
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "10.00",
+      "data": "13/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 62
+    },
+    {
+      "descricao": "[OFX] Compra no débito - FARMACIA VIDA",
+      "valor": "7.99",
+      "data": "14/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 63
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - Stefani de Sousa Barbosa Farias",
+      "valor": "897.00",
+      "data": "16/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 64
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Maria Edileusa Tavares de Araujo - •••.941.124-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 8365008897-5",
+      "valor": "132.24",
+      "data": "17/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 65
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Rafael Motta Guedes Pereira Maximo - •••.903.364-•• - BCO C6 S.A. (0336) Agência: 1 Conta: 3431962-0",
+      "valor": "1100.00",
+      "data": "17/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 66
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - FARMACIAS VIDA - 33.707.584/0001-99 - BANCO INTER (0077) Agência: 1 Conta: 43978735-1",
+      "valor": "15.60",
+      "data": "20/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 67
+    },
+    {
+      "descricao": "[OFX] Compra no débito - MP *CUPIMGRILL",
+      "valor": "35.00",
+      "data": "21/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 68
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "2.42",
+      "data": "21/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 69
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "1.99",
+      "data": "22/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 70
+    },
+    {
+      "descricao": "[OFX] Compra no débito - 55744596 KAMMYLLA MIRA",
+      "valor": "11.20",
+      "data": "26/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 71
+    },
+    {
+      "descricao": "[OFX] Pagamento de fatura",
+      "valor": "2752.32",
+      "data": "27/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 72
+    },
+    {
+      "descricao": "[OFX] Pagamento de boleto efetuado - 83TELECOM SERVICOS LTDA",
+      "valor": "99.99",
+      "data": "27/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 74
+    },
+    {
+      "descricao": "[OFX] Compra no débito - MP *CUPIMGRILL",
+      "valor": "35.00",
+      "data": "27/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 75
+    },
+    {
+      "descricao": "[OFX] Transferência enviada pelo Pix - Joao Victor Barbosa Hidalgo - •••.739.299-•• - MERCADO PAGO IP LTDA. (0323) Agência: 1 Conta: 3186243901-3",
+      "valor": "25.00",
+      "data": "27/03/2026",
+      "recorrencia": false,
+      "pago": true,
+      "id": 76
     }
   ],
   "cartoes": [
     {
-      "nome": "NBK",
-      "limite": "9855",
-      "dataVencimento": "30/04/2026",
-      "parcelamentos": [],
-      "id": 1
-    },
-    {
       "nome": "Itaú",
-      "limite": "12040",
+      "limite": "12045",
       "dataVencimento": "01/05/2026",
       "parcelamentos": [
         {
-          "descricao": "Fogao",
-          "valorTotal": 1669.7,
-          "numeroParcelas": 10,
-          "valorParcela": 166.97,
-          "dataInicio": "28/10/2025",
+          "descricao": "Fogão",
+          "valorTotal": 504,
+          "numeroParcelas": 3,
+          "valorParcela": 168,
+          "dataInicio": "29/04/2026",
           "parcelas": [
             {
               "numero": 1,
-              "pago": false
+              "pago": true
             },
             {
               "numero": 2,
@@ -236,48 +778,20 @@
             },
             {
               "numero": 3,
-              "pago": false
-            },
-            {
-              "numero": 4,
-              "pago": false
-            },
-            {
-              "numero": 5,
-              "pago": false
-            },
-            {
-              "numero": 6,
-              "pago": false
-            },
-            {
-              "numero": 7,
-              "pago": false
-            },
-            {
-              "numero": 8,
-              "pago": true
-            },
-            {
-              "numero": 9,
-              "pago": false
-            },
-            {
-              "numero": 10,
               "pago": false
             }
           ]
         },
         {
           "descricao": "Maquina de Lavar",
-          "valorTotal": 4199.9,
-          "numeroParcelas": 10,
-          "valorParcela": 419.98999999999995,
-          "dataInicio": "27/10/2025",
+          "valorTotal": 1259.88,
+          "numeroParcelas": 3,
+          "valorParcela": 419.96000000000004,
+          "dataInicio": "29/04/2026",
           "parcelas": [
             {
               "numero": 1,
-              "pago": false
+              "pago": true
             },
             {
               "numero": 2,
@@ -286,39 +800,11 @@
             {
               "numero": 3,
               "pago": false
-            },
-            {
-              "numero": 4,
-              "pago": false
-            },
-            {
-              "numero": 5,
-              "pago": false
-            },
-            {
-              "numero": 6,
-              "pago": false
-            },
-            {
-              "numero": 7,
-              "pago": false
-            },
-            {
-              "numero": 8,
-              "pago": true
-            },
-            {
-              "numero": 9,
-              "pago": false
-            },
-            {
-              "numero": 10,
-              "pago": false
             }
           ]
         }
       ],
-      "id": 2
+      "id": 1
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 
 
-const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, loading }) => {
+const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, httpConfigBatchUpdate, loading }) => {
 
 
 
@@ -192,6 +192,12 @@ const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, loading }) => {
         httpConfig(dataForDelete, 'DELETE')
     }
 
+    const handleApproveAll = async () => {
+        const pendentes = receitasFiltradas.filter(r => !r.recebido)
+        if (pendentes.length === 0) return
+        await httpConfigBatchUpdate(pendentes.map(r => ({ id: r.id, recebido: true })))
+    }
+
     return (
         <div className='mt-10 flex flex-col gap-8 px-6 max-w-5xl mx-auto w-full'>
 
@@ -326,6 +332,22 @@ const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, loading }) => {
 
             {/* Tabela */}
             <div className='rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl overflow-hidden'>
+                {/* Header com botão Aprovar todos */}
+                <div className='flex items-center justify-between px-6 py-3 border-b border-white/10'>
+                    <span className='text-xs text-white/40 uppercase tracking-widest'>Registros do mês</span>
+                    {receitasFiltradas.some(r => !r.recebido) && (
+                        <button
+                            type='button'
+                            onClick={handleApproveAll}
+                            className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-all duration-150'
+                        >
+                            <svg className='w-3.5 h-3.5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                            </svg>
+                            Aprovar todos ({receitasFiltradas.filter(r => !r.recebido).length})
+                        </button>
+                    )}
+                </div>
                 <table className='w-full text-sm'>
                     <thead>
                         <tr className='border-b border-white/10 text-white/40 uppercase text-xs tracking-widest'>
@@ -382,7 +404,16 @@ const Receitas = ({ listReceitas, httpConfig, httpConfigBatch, loading }) => {
                                                     ) : null}
                                                 </div>
                                             </td>
-                                            <td className='px-6 py-4 text-white font-medium'>{receita.descricao}</td>
+                                            <td className='px-6 py-4 text-white font-medium'>
+                                                <div className='flex items-center gap-2'>
+                                                    {receita.descricao.startsWith('[OFX]') && (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 text-blue-400 flex-shrink-0">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                                                        </svg>
+                                                    )}
+                                                    <span>{receita.descricao.replace('[OFX] ', '')}</span>
+                                                </div>
+                                            </td>
 
                                             <td className='px-6 py-4 text-right text-green-400 font-semibold'>
                                                 R$ {parseFloat(receita.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
